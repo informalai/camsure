@@ -1,651 +1,1010 @@
 import React, { useState } from 'react';
-import { Search, Plus, Filter, Calendar, Clock, Paperclip, MessageSquare, User, ChevronDown, MoreHorizontal, X, Check, AlertCircle, ArrowUp, ArrowDown, Minus, Shield, FileText, Map, Building2 } from 'lucide-react';
+import { Plus, User, Calendar, AlertCircle, CheckCircle, FileText, MessageSquare, Eye, Clock, MapPin } from 'lucide-react';
 
-// Mock data for mining compliance issues
-const mockIssues = [
-  {
-    id: 1,
-    key: 'COMP-101',
-    summary: 'Environmental Clearance (EC) renewal for Gua Main Mine',
-    description: 'Complete the renewal process for Environmental Clearance certificate which expires in June 2025. Requires submission of compliance reports and environmental impact assessment.',
-    type: 'Compliance',
-    status: 'todo',
-    priority: 'highest',
-    assignee: { id: 1, name: 'Rajesh Kumar', avatar: 'RK' },
-    reporter: { id: 2, name: 'Priya Sharma', avatar: 'PS' },
-    storyPoints: 8,
-    timeTracking: { logged: 0, estimated: 40, remaining: 40 },
-    comments: 5,
-    attachments: 3,
-    labels: ['EC', 'renewal', 'gua-main'],
-    dueDate: '2025-06-15',
-    createdAt: '2025-01-05',
-    mine: 'Gua Main Mine'
-  },
-  {
-    id: 2,
-    key: 'COMP-102',
-    summary: 'Forest Clearance (FC) documentation update',
-    description: 'Update Forest Clearance documentation for compensatory afforestation activities. Track plantation progress and submit quarterly reports.',
-    type: 'Task',
-    status: 'inprogress',
-    priority: 'high',
-    assignee: { id: 3, name: 'Amit Patel', avatar: 'AP' },
-    reporter: { id: 1, name: 'Rajesh Kumar', avatar: 'RK' },
-    storyPoints: 5,
-    timeTracking: { logged: 12, estimated: 24, remaining: 12 },
-    comments: 8,
-    attachments: 6,
-    labels: ['FC', 'afforestation', 'documentation'],
-    dueDate: '2025-01-30',
-    createdAt: '2025-01-04',
-    mine: 'Gua West Mine'
-  },
-  {
-    id: 3,
-    key: 'COMP-103',
-    summary: 'Consent to Operate (CTO) violation investigation',
-    description: 'Investigate reported CTO violation at Gua East Mine. Review operational parameters and submit corrective action plan.',
-    type: 'Bug',
-    status: 'inreview',
-    priority: 'highest',
-    assignee: { id: 4, name: 'Sneha Reddy', avatar: 'SR' },
-    reporter: { id: 2, name: 'Priya Sharma', avatar: 'PS' },
-    storyPoints: 3,
-    timeTracking: { logged: 16, estimated: 16, remaining: 0 },
-    comments: 12,
-    attachments: 4,
-    labels: ['CTO', 'violation', 'investigation'],
-    dueDate: '2025-01-20',
-    createdAt: '2025-01-03',
-    mine: 'Gua East Mine'
-  },
-  {
-    id: 4,
-    key: 'COMP-104',
-    summary: 'Air quality monitoring system installation',
-    description: 'Install and calibrate new air quality monitoring equipment at Rourkela Coal Mine as per CPCB guidelines.',
-    type: 'Story',
-    status: 'done',
-    priority: 'medium',
-    assignee: { id: 1, name: 'Rajesh Kumar', avatar: 'RK' },
-    reporter: { id: 4, name: 'Sneha Reddy', avatar: 'SR' },
-    storyPoints: 4,
-    timeTracking: { logged: 20, estimated: 20, remaining: 0 },
-    comments: 6,
-    attachments: 2,
-    labels: ['monitoring', 'air-quality', 'installation'],
-    dueDate: '2025-01-08',
-    createdAt: '2025-01-02',
-    mine: 'Rourkela Coal Mine'
-  },
-  {
-    id: 5,
-    key: 'COMP-105',
-    summary: 'Water pollution control measures implementation',
-    description: 'Implement additional water pollution control measures at Durg Limestone Mine to meet revised discharge standards.',
-    type: 'Compliance',
-    status: 'todo',
-    priority: 'high',
-    assignee: { id: 3, name: 'Amit Patel', avatar: 'AP' },
-    reporter: { id: 1, name: 'Rajesh Kumar', avatar: 'RK' },
-    storyPoints: 6,
-    timeTracking: { logged: 0, estimated: 32, remaining: 32 },
-    comments: 3,
-    attachments: 1,
-    labels: ['water-pollution', 'control-measures', 'durg'],
-    dueDate: '2025-02-15',
-    createdAt: '2025-01-06',
-    mine: 'Durg Limestone Mine'
-  },
-  {
-    id: 6,
-    key: 'COMP-106',
-    summary: 'Safety audit preparation for all sites',
-    description: 'Prepare comprehensive safety audit documentation for all mining operations. Coordinate with safety officers and compile reports.',
-    type: 'Task',
-    status: 'inprogress',
-    priority: 'medium',
-    assignee: { id: 2, name: 'Priya Sharma', avatar: 'PS' },
-    reporter: { id: 3, name: 'Amit Patel', avatar: 'AP' },
-    storyPoints: 7,
-    timeTracking: { logged: 8, estimated: 28, remaining: 20 },
-    comments: 4,
-    attachments: 5,
-    labels: ['safety', 'audit', 'all-sites'],
-    dueDate: '2025-01-25',
-    createdAt: '2025-01-05',
-    mine: 'All Sites'
-  }
-];
+const ComplianceKanban = () => {
+  const [tasks, setTasks] = useState([
+    {
+      id: '1',
+      title: 'Water Quality Monitoring - Site A',
+      leaseName: 'Northern Fields Lease',
+      area: 150.5,
+      conditionType: 'Environmental',
+      priority: 1,
+      assignedTo: 'John Smith',
+      assignedBy: 'Sarah Johnson',
+      createDate: '2024-01-15',
+      deadline: '2024-02-15',
+      completionDate: null,
+      approvedDate: null,
+      validationDate: null,
+      closureDate: null,
+      reopenedDate: null,
+      evidence: [],
+      comments: [],
+      validationStatus: 'pending',
+      column: 'assigned'
+    },
+    {
+      id: '2',
+      title: 'Soil Contamination Assessment',
+      leaseName: 'Eastern Block Lease',
+      area: 200.0,
+      conditionType: 'Regulatory',
+      priority: 2,
+      assignedTo: 'Mike Davis',
+      assignedBy: 'Sarah Johnson',
+      createDate: '2024-01-20',
+      deadline: '2024-03-01',
+      completionDate: '2024-02-28',
+      approvedDate: null,
+      validationDate: null,
+      closureDate: null,
+      reopenedDate: null,
+      evidence: ['soil_sample_1.pdf', 'lab_report_001.pdf'],
+      comments: ['Initial samples collected', 'Waiting for lab results'],
+      validationStatus: 'pending',
+      column: 'evidence-submitted'
+    },
+    {
+      id: '3',
+      title: 'Air Quality Compliance Check',
+      leaseName: 'Western Ridge Lease',
+      area: 85.2,
+      conditionType: 'Environmental',
+      priority: 3,
+      assignedTo: 'Lisa Chen',
+      assignedBy: 'Tom Wilson',
+      createDate: '2024-01-25',
+      deadline: '2024-02-28',
+      completionDate: '2024-02-27',
+      approvedDate: '2024-02-29',
+      validationDate: '2024-03-01',
+      closureDate: null,
+      reopenedDate: null,
+      evidence: ['air_quality_report.pdf'],
+      comments: ['Measurements completed', 'Report submitted for review'],
+      validationStatus: 'validated',
+      column: 'in-progress'
+    }
+  ]);
 
-const mockSprint = {
-  id: 1,
-  name: 'Compliance Sprint 23',
-  startDate: '2025-01-06',
-  endDate: '2025-01-20',
-  goal: 'Complete critical compliance renewals and address regulatory violations'
-};
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    leaseName: '',
+    area: '',
+    documentName: '',
+    conditionType: '',
+    shortenedConditionText: '',
+    conditionText: '',
+    priority: 2,
+    assignedTo: '',
+    deadline: ''
+  });
 
-// Priority icons
-const PriorityIcon = ({ priority }) => {
-  switch (priority) {
-    case 'highest':
-      return <ArrowUp className="w-4 h-4 text-red-500" />;
-    case 'high':
-      return <ArrowUp className="w-4 h-4 text-orange-500" />;
-    case 'medium':
-      return <Minus className="w-4 h-4 text-yellow-500" />;
-    case 'low':
-      return <ArrowDown className="w-4 h-4 text-green-500" />;
-    case 'lowest':
-      return <ArrowDown className="w-4 h-4 text-gray-500" />;
-    default:
-      return null;
-  }
-};
-
-// Issue type badge
-const IssueTypeBadge = ({ type }) => {
-  const colors = {
-    Story: 'bg-green-100 text-green-800',
-    Task: 'bg-blue-100 text-blue-800',
-    Bug: 'bg-red-100 text-red-800',
-    Epic: 'bg-purple-100 text-purple-800',
-    Compliance: 'bg-orange-100 text-orange-800'
+  // Sample data structure based on your CSV - in production, this would come from your database
+  const complianceData = {
+    "Northern Fields Lease": {
+      areas: {
+        "150.5": {
+          documents: {
+            "Environmental Assessment Report": {
+              conditionTypes: {
+                "Environmental": {
+                  shortenedConditions: {
+                    "Water quality monitoring required": "Conduct monthly water quality tests at designated sampling points to ensure compliance with environmental standards",
+                    "Air quality assessment needed": "Perform quarterly air quality measurements and submit reports to regulatory authority"
+                  }
+                },
+                "Regulatory": {
+                  shortenedConditions: {
+                    "Permit renewal required": "Submit permit renewal application with supporting documentation 60 days before expiration",
+                    "Compliance report submission": "Submit quarterly compliance reports detailing all environmental monitoring activities"
+                  }
+                }
+              }
+            },
+            "Safety Management Plan": {
+              conditionTypes: {
+                "Safety": {
+                  shortenedConditions: {
+                    "Safety training mandatory": "All personnel must complete safety training program before site access",
+                    "Equipment inspection required": "Monthly inspection of all safety equipment and emergency response systems"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "200.0": {
+          documents: {
+            "Impact Assessment Study": {
+              conditionTypes: {
+                "Environmental": {
+                  shortenedConditions: {
+                    "Soil contamination check": "Conduct soil contamination assessment at specified locations using approved methodology",
+                    "Groundwater monitoring": "Install groundwater monitoring wells and conduct monthly sampling"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Eastern Block Lease": {
+      areas: {
+        "200.0": {
+          documents: {
+            "Regulatory Compliance Manual": {
+              conditionTypes: {
+                "Regulatory": {
+                  shortenedConditions: {
+                    "License verification needed": "Verify all operational licenses are current and compliant with regulations",
+                    "Documentation review required": "Review and update all regulatory documentation annually"
+                  }
+                },
+                "Operational": {
+                  shortenedConditions: {
+                    "Operational audit required": "Conduct comprehensive operational audit to ensure compliance with lease terms",
+                    "Performance metrics review": "Review operational performance metrics against agreed benchmarks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "175.8": {
+          documents: {
+            "Environmental Impact Report": {
+              conditionTypes: {
+                "Environmental": {
+                  shortenedConditions: {
+                    "Biodiversity assessment": "Conduct biodiversity impact assessment in sensitive ecological areas",
+                    "Waste management review": "Review and optimize waste management procedures for environmental compliance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Western Ridge Lease": {
+      areas: {
+        "85.2": {
+          documents: {
+            "Air Quality Management Plan": {
+              conditionTypes: {
+                "Environmental": {
+                  shortenedConditions: {
+                    "Air quality compliance check": "Conduct air quality measurements to ensure compliance with emission standards",
+                    "Dust control measures": "Implement and monitor dust control measures during operational activities"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   };
-  
-  return (
-    <span className={`px-2 py-1 text-xs font-medium rounded ${colors[type] || 'bg-gray-100 text-gray-800'}`}>
-      {type}
-    </span>
-  );
-};
 
-// User avatar
-const UserAvatar = ({ user, size = 'sm' }) => {
-  const sizeClasses = {
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-12 h-12 text-base'
+  // Helper functions for cascading dropdowns
+  const getAvailableAreas = () => {
+    if (!newTask.leaseName) return [];
+    return Object.keys(complianceData[newTask.leaseName]?.areas || {});
   };
-  
-  return (
-    <div className={`${sizeClasses[size]} bg-blue-500 text-white rounded-full flex items-center justify-center font-medium`}>
-      {user.avatar}
-    </div>
-  );
-};
 
-// Issue card component
-const IssueCard = ({ issue, onSelect }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  
-  const handleDragStart = (e) => {
-    setIsDragging(true);
-    e.dataTransfer.setData('issueId', issue.id);
+  const getAvailableDocuments = () => {
+    if (!newTask.leaseName || !newTask.area) return [];
+    return Object.keys(complianceData[newTask.leaseName]?.areas[newTask.area]?.documents || {});
   };
-  
-  const handleDragEnd = () => {
-    setIsDragging(false);
+
+  const getAvailableConditionTypes = () => {
+    if (!newTask.leaseName || !newTask.area || !newTask.documentName) return [];
+    return Object.keys(complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes || {});
   };
-  
-  const progressPercentage = issue.timeTracking.estimated > 0 
-    ? (issue.timeTracking.logged / issue.timeTracking.estimated) * 100 
-    : 0;
-  
-  return (
-    <div
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onClick={() => onSelect(issue)}
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-3 cursor-move hover:shadow-md transition-shadow ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-    >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <IssueTypeBadge type={issue.type} />
-          <span className="text-sm text-gray-500">{issue.key}</span>
-        </div>
-        <PriorityIcon priority={issue.priority} />
-      </div>
+
+  const getAvailableShortenedConditions = () => {
+    if (!newTask.leaseName || !newTask.area || !newTask.documentName || !newTask.conditionType) return [];
+    return Object.keys(complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes[newTask.conditionType]?.shortenedConditions || {});
+  };
+
+  const getConditionText = () => {
+    if (!newTask.leaseName || !newTask.area || !newTask.documentName || !newTask.conditionType || !newTask.shortenedConditionText) return '';
+    return complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes[newTask.conditionType]?.shortenedConditions[newTask.shortenedConditionText] || '';
+  };
+
+  // Reset dependent fields when parent changes
+  const handleLeaseNameChange = (leaseName) => {
+    setNewTask({
+      ...newTask,
+      leaseName,
+      area: '',
+      documentName: '',
+      conditionType: '',
+      shortenedConditionText: '',
+      conditionText: ''
+    });
+  };
+
+  const handleAreaChange = (area) => {
+    setNewTask({
+      ...newTask,
+      area,
+      documentName: '',
+      conditionType: '',
+      shortenedConditionText: '',
+      conditionText: ''
+    });
+  };
+
+  const handleDocumentChange = (documentName) => {
+    setNewTask({
+      ...newTask,
+      documentName,
+      conditionType: '',
+      shortenedConditionText: '',
+      conditionText: ''
+    });
+  };
+
+  const handleConditionTypeChange = (conditionType) => {
+    setNewTask({
+      ...newTask,
+      conditionType,
+      shortenedConditionText: '',
+      conditionText: ''
+    });
+  };
+
+  const handleShortenedConditionChange = (shortenedConditionText) => {
+    const conditionText = complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes[newTask.conditionType]?.shortenedConditions[shortenedConditionText] || '';
+    setNewTask({
+      ...newTask,
+      shortenedConditionText,
+      conditionText
+    });
+  };
+
+  const columns = [
+    { id: 'assigned', title: 'Assigned', color: 'bg-blue-100', textColor: 'text-blue-700' },
+    { id: 'in-progress', title: 'In Progress', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
+    { id: 'evidence-submitted', title: 'Evidence Submitted', color: 'bg-purple-100', textColor: 'text-purple-700' },
+    { id: 'completed', title: 'Completed', color: 'bg-green-100', textColor: 'text-green-700' },
+    { id: 'rejected', title: 'Rejected/Reopened', color: 'bg-red-100', textColor: 'text-red-700' }
+  ];
+
+  const getTasksByColumn = (columnId) => {
+    return tasks.filter(task => task.column === columnId);
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 1: return 'bg-red-500';
+      case 2: return 'bg-yellow-500';
+      case 3: return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getPriorityText = (priority) => {
+    switch (priority) {
+      case 1: return 'High';
+      case 2: return 'Medium';
+      case 3: return 'Low';
+      default: return 'Medium';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const isOverdue = (deadline) => {
+    return new Date(deadline) < new Date();
+  };
+
+  const MilestoneProgressBar = ({ task }) => {
+    const milestones = [
+      { key: 'createDate', label: 'Created', date: task.createDate, column: 'assigned' },
+      { key: 'deadline', label: 'Due', date: task.deadline, column: 'assigned' },
+      { key: 'completionDate', label: 'Completed', date: task.completionDate, column: 'evidence-submitted' },
+      { key: 'approvedDate', label: 'Approved', date: task.approvedDate, column: 'completed' },
+      { key: 'validationDate', label: 'Validated', date: task.validationDate, column: 'completed' },
+      { key: 'closureDate', label: 'Closed', date: task.closureDate, column: 'completed' },
+      { key: 'reopenedDate', label: 'Reopened', date: task.reopenedDate, column: 'rejected' }
+    ];
+
+    // Calculate progress based on workflow position, not just completed milestones
+    const getWorkflowProgress = () => {
+      const columnOrder = ['assigned', 'in-progress', 'evidence-submitted', 'completed', 'rejected'];
+      const currentIndex = columnOrder.indexOf(task.column);
       
-      <h4 className="text-sm font-medium text-gray-900 mb-3">{issue.summary}</h4>
+      if (task.column === 'rejected') {
+        return 60; // Show as partial progress for rejected items
+      }
       
-      <div className="flex flex-wrap gap-1 mb-3">
-        {issue.labels.map((label, idx) => (
-          <span key={idx} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-            {label}
-          </span>
-        ))}
-      </div>
-      
-      {issue.timeTracking.estimated > 0 && (
-        <div className="mb-3">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <span>{issue.timeTracking.logged}h logged</span>
-            <span>{issue.timeTracking.remaining}h remaining</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className="bg-blue-500 h-1.5 rounded-full"
-              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <UserAvatar user={issue.assignee} />
-          <div className="flex items-center space-x-2 text-xs text-gray-500">
-            {issue.comments > 0 && (
-              <div className="flex items-center space-x-1">
-                <MessageSquare className="w-3 h-3" />
-                <span>{issue.comments}</span>
-              </div>
-            )}
-            {issue.attachments > 0 && (
-              <div className="flex items-center space-x-1">
-                <Paperclip className="w-3 h-3" />
-                <span>{issue.attachments}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center space-x-1">
-          <span className="text-xs font-medium text-gray-700">{issue.storyPoints}</span>
-          <span className="text-xs text-gray-500">pts</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+      // Calculate progress based on current column position
+      const baseProgress = ((currentIndex + 1) / (columnOrder.length - 1)) * 100; // Exclude rejected from normal flow
+      return Math.min(baseProgress, 100);
+    };
 
-// Column component
-const BoardColumn = ({ title, status, issues, onIssueSelect }) => {
-  const [isDragOver, setIsDragOver] = useState(false);
-  
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-  
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-  
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const issueId = e.dataTransfer.getData('issueId');
-    console.log(`Dropped issue ${issueId} into ${status}`);
-  };
-  
-  const totalPoints = issues.reduce((sum, issue) => sum + issue.storyPoints, 0);
-  
-  return (
-    <div className="flex-1 min-w-0">
-      <div className="bg-gray-50 rounded-lg">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-900">{title}</h3>
-            <span className="text-xs text-gray-500">{issues.length} issues · {totalPoints} pts</span>
-          </div>
-        </div>
-        <div
-          className={`p-4 min-h-[400px] ${isDragOver ? 'bg-blue-50' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {issues.map(issue => (
-            <IssueCard key={issue.id} issue={issue} onSelect={onIssueSelect} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+    const progress = getWorkflowProgress();
 
-// Issue detail modal
-const IssueDetailModal = ({ issue, onClose }) => {
-  if (!issue) return null;
-  
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-3">
-            <IssueTypeBadge type={issue.type} />
-            <span className="text-sm text-gray-500">{issue.key}</span>
-            <button className="text-sm text-blue-600 hover:underline">Edit</button>
+    return (
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">Progress Timeline</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">{Math.round(progress)}% Complete</span>
+            <div className={`px-2 py-1 rounded text-xs ${
+              task.column === 'completed' ? 'bg-green-100 text-green-800' :
+              task.column === 'rejected' ? 'bg-red-100 text-red-800' :
+              task.column === 'evidence-submitted' ? 'bg-purple-100 text-purple-800' :
+              task.column === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-blue-100 text-blue-800'
+            }`}>
+              {task.column.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-5 h-5" />
-          </button>
         </div>
         
-        <div className="flex">
-          <div className="flex-1 p-6 overflow-y-auto">
-            <h2 className="text-2xl font-semibold mb-4">{issue.summary}</h2>
-            
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
-              <p className="text-gray-600">{issue.description}</p>
-            </div>
-            
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Attachments</h3>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Drop files here or click to upload</p>
-              </div>
-            </div>
-            
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Activity</h3>
-              <div className="space-y-4">
-                <div className="flex space-x-3">
-                  <UserAvatar user={issue.reporter} />
-                  <div className="flex-1">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">{issue.reporter.name}</span>
-                        <span className="text-xs text-gray-500">2 hours ago</span>
-                      </div>
-                      <p className="text-sm text-gray-700">Changed status from To Do to In Progress</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border-t pt-4">
-              <textarea
-                placeholder="Add a comment..."
-                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="3"
-              />
-              <div className="flex justify-end mt-2">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Comment
-                </button>
-              </div>
-            </div>
+        <div className="relative">
+          {/* Progress bar background */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div 
+              className={`h-2 rounded-full transition-all duration-500 ${
+                task.column === 'completed' ? 'bg-green-500' :
+                task.column === 'rejected' ? 'bg-red-500' :
+                'bg-blue-500'
+              }`}
+              style={{ width: `${progress}%` }}
+            />
           </div>
           
-          <div className="w-80 bg-gray-50 p-6 border-l">
-            <div className="space-y-6">
+          {/* Milestone markers */}
+          <div className="flex justify-between text-xs">
+            {milestones.map((milestone, index) => {
+              // Determine if this milestone should be highlighted based on workflow progress
+              const shouldHighlight = milestone.date || 
+                (task.column === 'in-progress' && ['createDate', 'deadline'].includes(milestone.key)) ||
+                (task.column === 'evidence-submitted' && ['createDate', 'deadline', 'completionDate'].includes(milestone.key)) ||
+                (task.column === 'completed' && !['reopenedDate'].includes(milestone.key)) ||
+                (task.column === 'rejected' && milestone.key === 'reopenedDate');
+
+              return (
+                <div key={milestone.key} className="flex flex-col items-center">
+                  <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
+                    shouldHighlight
+                      ? milestone.key === 'reopenedDate' 
+                        ? 'bg-red-500 border-red-500 animate-pulse' 
+                        : milestone.key === 'deadline' && isOverdue(milestone.date) && !task.completionDate
+                        ? 'bg-red-500 border-red-500'
+                        : 'bg-green-500 border-green-500'
+                      : 'bg-white border-gray-300'
+                  } mb-1`}>
+                    {shouldHighlight && (
+                      <div className="w-full h-full rounded-full bg-white opacity-30" />
+                    )}
+                  </div>
+                  <span className={`text-xs transition-colors duration-200 ${
+                    shouldHighlight ? 'text-gray-700 font-medium' : 'text-gray-400'
+                  }`}>
+                    {milestone.label}
+                  </span>
+                  {milestone.date && (
+                    <span className="text-xs text-gray-500 mt-1">
+                      {formatDate(milestone.date)}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Status change indicator */}
+        {task.reopenedDate && (
+          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+            <span className="text-red-700 font-medium">⚠️ Task was reopened on {formatDate(task.reopenedDate)}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const moveTask = (taskId, newColumn) => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    setTasks(tasks.map(task => {
+      if (task.id === taskId) {
+        const updatedTask = { ...task, column: newColumn };
+        
+        // Auto-populate dates based on status changes
+        switch (newColumn) {
+          case 'in-progress':
+            // When moving to in-progress, ensure creation date exists
+            if (!updatedTask.createDate) {
+              updatedTask.createDate = currentDate;
+            }
+            break;
+            
+          case 'evidence-submitted':
+            // When evidence is submitted, mark as completed
+            if (!updatedTask.completionDate) {
+              updatedTask.completionDate = currentDate;
+            }
+            break;
+            
+          case 'completed':
+            // When task is completed, set completion, approval, validation, and closure dates
+            if (!updatedTask.completionDate) {
+              updatedTask.completionDate = currentDate;
+            }
+            if (!updatedTask.approvedDate) {
+              updatedTask.approvedDate = currentDate;
+            }
+            if (!updatedTask.validationDate) {
+              updatedTask.validationDate = currentDate;
+            }
+            if (!updatedTask.closureDate) {
+              updatedTask.closureDate = currentDate;
+            }
+            updatedTask.validationStatus = 'validated';
+            break;
+            
+          case 'rejected':
+            // When task is rejected/reopened
+            updatedTask.reopenedDate = currentDate;
+            updatedTask.validationStatus = 'rejected';
+            // Clear future dates when reopening
+            updatedTask.validationDate = null;
+            updatedTask.closureDate = null;
+            break;
+            
+          case 'assigned':
+            // When task is reassigned, clear completion-related dates
+            updatedTask.completionDate = null;
+            updatedTask.approvedDate = null;
+            updatedTask.validationDate = null;
+            updatedTask.closureDate = null;
+            updatedTask.reopenedDate = null;
+            updatedTask.validationStatus = 'pending';
+            break;
+            
+          default:
+            break;
+        }
+        
+        return updatedTask;
+      }
+      return task;
+    }));
+  };
+
+  const createTask = () => {
+    if (!newTask.leaseName || !newTask.area || !newTask.documentName || !newTask.conditionType || !newTask.shortenedConditionText || !newTask.assignedTo) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const task = {
+      id: Date.now().toString(),
+      title: newTask.shortenedConditionText, // Use shortened condition text as title
+      leaseName: newTask.leaseName,
+      area: parseFloat(newTask.area),
+      documentName: newTask.documentName,
+      conditionType: newTask.conditionType,
+      shortenedConditionText: newTask.shortenedConditionText,
+      conditionText: newTask.conditionText,
+      priority: newTask.priority,
+      assignedTo: newTask.assignedTo,
+      assignedBy: 'Current User',
+      createDate: new Date().toISOString().split('T')[0],
+      deadline: newTask.deadline,
+      completionDate: null,
+      approvedDate: null,
+      validationDate: null,
+      closureDate: null,
+      reopenedDate: null,
+      evidence: [],
+      comments: [],
+      validationStatus: 'pending',
+      column: 'assigned'
+    };
+
+    setTasks([...tasks, task]);
+    setNewTask({
+      title: '',
+      leaseName: '',
+      area: '',
+      documentName: '',
+      conditionType: '',
+      shortenedConditionText: '',
+      conditionText: '',
+      priority: 2,
+      assignedTo: '',
+      deadline: ''
+    });
+    setShowTaskForm(false);
+  };
+
+  const TaskCard = ({ task }) => (
+    <div
+      className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-3 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => setSelectedTask(task)}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold text-sm text-gray-800 line-clamp-2 flex-1">{task.title}</h3>
+        <div className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)} ml-2`} />
+      </div>
+      
+      <div className="text-xs text-gray-600 mb-2">
+        <div className="flex items-center gap-1 mb-1">
+          <MapPin className="w-3 h-3" />
+          <span className="truncate">{task.leaseName}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <User className="w-3 h-3" />
+          <span>{task.assignedTo}</span>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center text-xs mb-2">
+        <span className="text-gray-500">Area: {task.area}km²</span>
+      </div>
+
+      <div className="flex items-center justify-between text-xs">
+        <span className={`px-2 py-1 rounded ${
+          task.conditionType === 'Environmental' ? 'bg-green-100 text-green-800' :
+          task.conditionType === 'Regulatory' ? 'bg-blue-100 text-blue-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {task.conditionType}
+        </span>
+        
+        <div className="flex items-center gap-2">
+          {task.evidence.length > 0 && (
+            <div className="flex items-center gap-1 text-blue-600">
+              <FileText className="w-3 h-3" />
+              <span>{task.evidence.length}</span>
+            </div>
+          )}
+          {task.comments.length > 0 && (
+            <div className="flex items-center gap-1 text-gray-500">
+              <MessageSquare className="w-3 h-3" />
+              <span>{task.comments.length}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isOverdue(task.deadline) && (
+        <div className="mt-2 flex items-center gap-1 text-xs text-red-600">
+          <AlertCircle className="w-3 h-3" />
+          <span>Overdue</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const TaskModal = ({ task, onClose }) => {
+    const [newComment, setNewComment] = useState('');
+    const [newEvidence, setNewEvidence] = useState('');
+
+    if (!task) return null;
+
+    const addComment = () => {
+      if (newComment.trim()) {
+        task.comments.push(`${new Date().toLocaleString()}: ${newComment.trim()}`);
+        setNewComment('');
+        setTasks([...tasks]);
+      }
+    };
+
+    const addEvidence = () => {
+      if (newEvidence.trim()) {
+        task.evidence.push(newEvidence.trim());
+        setNewEvidence('');
+        setTasks([...tasks]);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-bold text-gray-800">{task.title}</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <h3 className="text-xs font-medium text-gray-500 uppercase mb-3">Details</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm text-gray-600">Assignee</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <UserAvatar user={issue.assignee} />
-                      <span className="text-sm">{issue.assignee.name}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Reporter</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <UserAvatar user={issue.reporter} />
-                      <span className="text-sm">{issue.reporter.name}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Priority</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <PriorityIcon priority={issue.priority} />
-                      <span className="text-sm capitalize">{issue.priority}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Story Points</label>
-                    <div className="text-sm mt-1">{issue.storyPoints}</div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Labels</label>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {issue.labels.map((label, idx) => (
-                        <span key={idx} className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">
-                          {label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Lease Name</label>
+                <p className="text-sm text-gray-600">{task.leaseName}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
+                <p className="text-sm text-gray-600">{task.area} km²</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Condition Type</label>
+                <p className="text-sm text-gray-600">{task.conditionType}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)}`} />
+                  <span className="text-sm text-gray-600">{getPriorityText(task.priority)}</span>
                 </div>
               </div>
-              
               <div>
-                <h3 className="text-xs font-medium text-gray-500 uppercase mb-3">Time Tracking</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Logged</span>
-                    <span>{issue.timeTracking.logged}h</span>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                <p className="text-sm text-gray-600">{task.assignedTo}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Assigned By</label>
+                <p className="text-sm text-gray-600">{task.assignedBy}</p>
+              </div>
+            </div>
+
+            <MilestoneProgressBar task={task} />
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status Actions</label>
+              <p className="text-xs text-gray-500 mb-3">Click any status to move the task and automatically update timeline dates</p>
+              <div className="flex gap-2 flex-wrap">
+                {columns.map(col => (
+                  <button
+                    key={col.id}
+                    onClick={() => {
+                      moveTask(task.id, col.id);
+                      // Update the selected task to reflect changes immediately
+                      setSelectedTask({...task, column: col.id});
+                    }}
+                    className={`px-3 py-1 rounded text-xs transition-all duration-200 ${
+                      task.column === col.id 
+                        ? `${col.color} ${col.textColor} border-2 border-current font-medium` 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                    }`}
+                  >
+                    {col.title}
+                    {task.column === col.id && (
+                      <span className="ml-1">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Evidence Files</label>
+              <div className="space-y-2">
+                {task.evidence.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-gray-700 flex-1">{file}</span>
+                    <button className="text-blue-600 hover:text-blue-800">
+                      <Eye className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Remaining</span>
-                    <span>{issue.timeTracking.remaining}h</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Original Estimate</span>
-                    <span>{issue.timeTracking.estimated}h</span>
-                  </div>
-                  <button className="w-full mt-2 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                    Log Work
+                ))}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add evidence file name..."
+                    value={newEvidence}
+                    onChange={(e) => setNewEvidence(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <button
+                    onClick={addEvidence}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Add
                   </button>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-xs font-medium text-gray-500 uppercase mb-3">Dates</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Created</span>
-                    <span>{issue.createdAt}</span>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {task.comments.map((comment, index) => (
+                  <div key={index} className="p-2 bg-gray-50 rounded text-sm text-gray-700">
+                    {comment}
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Due Date</span>
-                    <span className="text-orange-600">{issue.dueDate}</span>
-                  </div>
-                </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  placeholder="Add comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addComment()}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <button
+                  onClick={addComment}
+                  className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  Add
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-// Main board component
-const ScrumBoard = () => {
-  const [issues] = useState(mockIssues);
-  const [selectedIssue, setSelectedIssue] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('All');
-  const [filterMine, setFilterMine] = useState('All Sites');
-  const [filterPriority, setFilterPriority] = useState('All');
-  const [onlyMyIssues, setOnlyMyIssues] = useState(false);
-  const myUserId = 1; // Simulate current user (Rajesh Kumar)
-
-  const columns = [
-    { title: 'To Do', status: 'todo' },
-    { title: 'In Progress', status: 'inprogress' },
-    { title: 'In Review', status: 'inreview' },
-    { title: 'Done', status: 'done' }
-  ];
-
-  // Filtering logic
-  const filteredIssues = issues.filter(issue => {
-    const matchesType = filterType === 'All' || issue.type === filterType;
-    const matchesMine = filterMine === 'All Sites' || issue.mine === filterMine;
-    const matchesPriority = filterPriority === 'All' || issue.priority.toLowerCase() === filterPriority.toLowerCase();
-    const matchesSearch =
-      issue.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.mine.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesUser = !onlyMyIssues || issue.assignee.id === myUserId;
-    return matchesType && matchesMine && matchesPriority && matchesSearch && matchesUser;
-  });
-
-  const getIssuesByStatus = (status) => {
-    return filteredIssues.filter(issue => issue.status === status);
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Main Board Content */}
-      <div className="flex-1">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <h1 className="text-2xl font-semibold">Scrum Board</h1>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span className="font-medium">{mockSprint.name}</span>
-                  <span>·</span>
-                  <span>{mockSprint.startDate} - {mockSprint.endDate}</span>
-                </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">AI Validation:</span>
+                <span className={`px-2 py-1 rounded text-xs ${
+                  task.validationStatus === 'validated' ? 'bg-green-100 text-green-800' :
+                  task.validationStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {task.validationStatus}
+                </span>
               </div>
-              <div className="flex items-center space-x-3">
-                <button className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">
-                  Complete Sprint
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    const updatedTask = {
+                      ...task,
+                      validationStatus: 'rejected',
+                      reopenedDate: currentDate,
+                      validationDate: null,
+                      closureDate: null,
+                      column: 'rejected'
+                    };
+                    setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
+                    setSelectedTask(updatedTask);
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Reject & Reopen
                 </button>
                 <button 
-                  onClick={() => console.log('Create issue clicked')}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                  onClick={() => {
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    const updatedTask = {
+                      ...task,
+                      validationStatus: 'validated',
+                      validationDate: currentDate,
+                      closureDate: currentDate,
+                      completionDate: task.completionDate || currentDate,
+                      approvedDate: task.approvedDate || currentDate,
+                      column: 'completed'
+                    };
+                    setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
+                    setSelectedTask(updatedTask);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Create Issue</span>
+                  Validate & Complete
                 </button>
               </div>
             </div>
           </div>
-        </header>
-        {/* Board columns */}
-        <div className="flex-1 overflow-x-auto">
-          <div className="p-6">
-            <div className="flex space-x-6" style={{ minWidth: '1000px' }}>
-              {columns.map(column => (
-                <BoardColumn
-                  key={column.status}
-                  title={column.title}
-                  status={column.status}
-                  issues={getIssuesByStatus(column.status)}
-                  onIssueSelect={setSelectedIssue}
-                />
-              ))}
-            </div>
-          </div>
         </div>
-        {/* Issue detail modal */}
-        {selectedIssue && (
-          <IssueDetailModal
-            issue={selectedIssue}
-            onClose={() => setSelectedIssue(null)}
-          />
-        )}
       </div>
-      {/* Right Filter Panel */}
-      <div className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 z-50 shadow-2xl flex flex-col">
-        <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <Filter size={20} className="text-white" />
+    );
+  };
+
+  const NewTaskForm = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-lg font-bold mb-4">Create New Compliance Task</h3>
+        <div className="space-y-4">
+          
+          {/* Lease Name Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Lease Name *</label>
+            <select
+              value={newTask.leaseName}
+              onChange={(e) => handleLeaseNameChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="">Select Lease Name</option>
+              {Object.keys(complianceData).map(lease => (
+                <option key={lease} value={lease}>{lease}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Area Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Area (km²) *</label>
+            <select
+              value={newTask.area}
+              onChange={(e) => handleAreaChange(e.target.value)}
+              disabled={!newTask.leaseName}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+            >
+              <option value="">Select Area</option>
+              {getAvailableAreas().map(area => (
+                <option key={area} value={area}>{area} km²</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Document Name Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+            <select
+              value={newTask.documentName}
+              onChange={(e) => handleDocumentChange(e.target.value)}
+              disabled={!newTask.area}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+            >
+              <option value="">Select Document</option>
+              {getAvailableDocuments().map(doc => (
+                <option key={doc} value={doc}>{doc}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Condition Type Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Condition Type *</label>
+            <select
+              value={newTask.conditionType}
+              onChange={(e) => handleConditionTypeChange(e.target.value)}
+              disabled={!newTask.documentName}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+            >
+              <option value="">Select Condition Type</option>
+              {getAvailableConditionTypes().map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Shortened Condition Text Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Condition Summary *</label>
+            <select
+              value={newTask.shortenedConditionText}
+              onChange={(e) => handleShortenedConditionChange(e.target.value)}
+              disabled={!newTask.conditionType}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+            >
+              <option value="">Select Condition</option>
+              {getAvailableShortenedConditions().map(condition => (
+                <option key={condition} value={condition}>{condition}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Condition Text Display */}
+          {newTask.conditionText && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Condition Text</label>
+              <div className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm text-gray-700 max-h-20 overflow-y-auto">
+                {newTask.conditionText}
+              </div>
+            </div>
+          )}
+
+          {/* Priority and Assignment */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <select
+                value={newTask.priority}
+                onChange={(e) => setNewTask({...newTask, priority: parseInt(e.target.value)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value={1}>High</option>
+                <option value={2}>Medium</option>
+                <option value={3}>Low</option>
+              </select>
             </div>
             <div>
-              <h3 className="font-bold text-gray-900">Filters</h3>
-              <p className="text-sm text-gray-600">Refine compliance issues</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To *</label>
+              <input
+                type="text"
+                placeholder="e.g., John Smith"
+                value={newTask.assignedTo}
+                onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
             </div>
           </div>
-          {/* Search */}
-          <div className="relative mb-6">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
+          {/* Deadline */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
             <input
-              type="text"
-              placeholder="Search issues..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              type="date"
+              value={newTask.deadline}
+              onChange={(e) => setNewTask({...newTask, deadline: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
-          {/* Issue Type Filter */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <FileText size={16} className="text-blue-500" />
-              Issue Type
-            </h4>
-            <div className="space-y-2">
-              {['All', 'Compliance', 'Task', 'Bug', 'Story'].map(type => (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type)}
-                  className={`w-full p-3 rounded-lg text-left transition-all ${filterType === type ? 'bg-blue-500 text-white shadow-lg' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Mine Location Filter */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Building2 size={16} className="text-blue-500" />
-              Mine Location
-            </h4>
-            <div className="space-y-2">
-              {['All Sites', 'Gua Main Mine', 'Gua West Mine', 'Gua East Mine', 'Rourkela Coal Mine', 'Durg Limestone Mine'].map(mine => (
-                <button
-                  key={mine}
-                  onClick={() => setFilterMine(mine)}
-                  className={`w-full p-3 rounded-lg text-left transition-all ${filterMine === mine ? 'bg-blue-500 text-white shadow-lg' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
-                >
-                  {mine}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Priority Filter */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <AlertCircle size={16} className="text-blue-500" />
-              Priority
-            </h4>
-            <div className="space-y-2">
-              {['All', 'Highest', 'High', 'Medium', 'Low'].map(priority => (
-                <button
-                  key={priority}
-                  onClick={() => setFilterPriority(priority)}
-                  className={`w-full p-3 rounded-lg text-left transition-all ${filterPriority === priority ? 'bg-blue-500 text-white shadow-lg' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
-                >
-                  {priority}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Only My Issues Toggle */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <User size={16} className="text-blue-500" />
-              Only My Issues
-            </h4>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4">
             <button
-              onClick={() => setOnlyMyIssues(v => !v)}
-              className={`w-full p-3 rounded-lg text-left transition-all ${onlyMyIssues ? 'bg-blue-500 text-white shadow-lg' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
+              onClick={() => setShowTaskForm(false)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              {onlyMyIssues ? 'Showing only issues assigned to you' : 'Show all issues'}
+              Cancel
+            </button>
+            <button
+              onClick={createTask}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Create Task
             </button>
           </div>
         </div>
       </div>
     </div>
   );
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Environmental Compliance Tracker</h1>
+        <div className="flex justify-between items-center">
+          <p className="text-gray-600">Manage compliance tasks across lease agreements</p>
+          <button
+            onClick={() => setShowTaskForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4" />
+            New Task
+          </button>
+        </div>
+      </div>
+
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {columns.map((column) => (
+          <div key={column.id} className="min-w-[320px] flex-shrink-0">
+            <div className={`${column.color} p-4 rounded-t-lg border-b-2 border-gray-300`}>
+              <h2 className={`font-semibold ${column.textColor} text-lg`}>{column.title}</h2>
+              <span className="text-sm text-gray-600">
+                {getTasksByColumn(column.id).length} tasks
+              </span>
+            </div>
+            <div className="bg-white p-4 rounded-b-lg border-2 border-gray-200 min-h-[600px]">
+              <div className="space-y-3">
+                {getTasksByColumn(column.id).map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+                {getTasksByColumn(column.id).length === 0 && (
+                  <div className="text-center text-gray-500 py-8">
+                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>No tasks in this column</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
+
+      {showTaskForm && <NewTaskForm />}
+    </div>
+  );
 };
 
-export default ScrumBoard;
+export default ComplianceKanban;

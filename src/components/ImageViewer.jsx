@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Filter, X, Search, Building2, AlertCircle } from 'lucide-react';
 
 const EcoComplianceInspector = () => {
   // Sample data
@@ -90,6 +91,7 @@ const EcoComplianceInspector = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState({ compliance: 'all', environment: 'all', infrastructure: 'all' });
+  const [rightPanelExpanded, setRightPanelExpanded] = useState(false);
 
   // Helper functions
   const getComplianceType = (aspect) => {
@@ -128,12 +130,12 @@ const EcoComplianceInspector = () => {
     let score = 0;
     let total = 0;
     
-    for (const [key, value] of Object.entries(annotations)) {
+    for (const [annotationKey, value] of Object.entries(annotations)) {
       if (typeof value === 'number') {
         total++;
-        if (positiveIndicators.includes(key) && value > 0) {
+        if (positiveIndicators.includes(annotationKey) && value > 0) {
           score += Math.min(value, 10);
-        } else if (negativeIndicators.includes(key) && value === 0) {
+        } else if (negativeIndicators.includes(annotationKey) && value === 0) {
           score += 5;
         }
       }
@@ -144,14 +146,14 @@ const EcoComplianceInspector = () => {
 
   const getActiveDetections = (annotations) => {
     return Object.entries(annotations)
-      .filter(([key, value]) => typeof value === 'number' && value > 0)
+      .filter(([annotationKey, value]) => typeof value === 'number' && value > 0)
       .length;
   };
 
   const getTotalDetections = (annotations) => {
     return Object.entries(annotations)
-      .filter(([key, value]) => typeof value === 'number')
-      .reduce((sum, [key, value]) => sum + value, 0);
+      .filter(([annotationKey, value]) => typeof value === 'number')
+      .reduce((sum, [annotationKey, value]) => sum + value, 0);
   };
 
   // Filtered images based on search and filters
@@ -164,8 +166,8 @@ const EcoComplianceInspector = () => {
         img.image_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         img.annotations.compliance_aspect.toLowerCase().includes(searchQuery.toLowerCase()) ||
         img.annotations.justification.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        Object.keys(img.annotations).some(key => 
-          key.toLowerCase().includes(searchQuery.toLowerCase()) && img.annotations[key] > 0
+        Object.keys(img.annotations).some(annotationKey => 
+          annotationKey.toLowerCase().includes(searchQuery.toLowerCase()) && img.annotations[annotationKey] > 0
         )
       );
     }
@@ -239,21 +241,6 @@ const EcoComplianceInspector = () => {
   }, [searchQuery, activeFilters]);
 
   // Components
-  const FilterSection = ({ title, category, options }) => (
-    <div className="filter-section">
-      <span className="filter-label">{title}</span>
-      {options.map(option => (
-        <button
-          key={option.value}
-          className={`filter-btn ${activeFilters[category] === option.value ? 'active' : ''}`}
-          onClick={() => setActiveFilters(prev => ({ ...prev, [category]: option.value }))}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-
   const ImageCard = ({ image, onClick }) => {
     const annotations = image.annotations;
     const activeDetections = getActiveDetections(annotations);
@@ -261,20 +248,20 @@ const EcoComplianceInspector = () => {
     const complianceType = getComplianceType(annotations.compliance_aspect);
 
     return (
-      <div className="image-card" onClick={onClick}>
-        <div className="image-placeholder" style={{ background: image.color }}>
-          <div className="image-icon">{getComplianceIcon(annotations.compliance_aspect)}</div>
-          <div className="image-type-label">Analysis Ready</div>
-          <div className={`compliance-badge ${getComplianceBadgeClass(annotations.compliance_aspect)}`}>
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden" onClick={onClick}>
+        <div className="h-48 flex flex-col items-center justify-center relative" style={{ background: image.color }}>
+          <div className="text-6xl mb-2">{getComplianceIcon(annotations.compliance_aspect)}</div>
+          <div className="text-white text-sm font-semibold uppercase tracking-wide">Analysis Ready</div>
+          <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold text-white ${getComplianceBadgeClass(annotations.compliance_aspect)}`}>
             {complianceType.toUpperCase()}
           </div>
         </div>
-        <div className="image-info">
-          <div className="image-title">{image.image_name}</div>
-          <div className="image-meta">{annotations.compliance_aspect}</div>
-          <div className="compliance-summary">
-            <div className="compliance-text">{activeDetections} active elements</div>
-            <div className="detection-count">{totalDetections} total</div>
+        <div className="p-4">
+          <div className="font-semibold text-gray-900 text-sm mb-1 truncate">{image.image_name}</div>
+          <div className="text-gray-600 text-xs mb-3">{annotations.compliance_aspect}</div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-green-600 font-medium">{activeDetections} active elements</span>
+            <span className="bg-gray-100 px-2 py-1 rounded text-gray-600">{totalDetections} total</span>
           </div>
         </div>
       </div>
@@ -282,16 +269,18 @@ const EcoComplianceInspector = () => {
   };
 
   const DetectionGrid = ({ title, annotations, keys }) => (
-    <div className="metadata-section">
-      <div className="metadata-section-title">{title}</div>
-      <div className="detections-grid">
-        {keys.map(key => {
-          if (annotations.hasOwnProperty(key)) {
-            const value = annotations[key];
+    <div className="mb-6">
+      <div className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-2">{title}</div>
+      <div className="grid grid-cols-2 gap-2">
+        {keys.map(detectionKey => {
+          if (Object.prototype.hasOwnProperty.call(annotations, detectionKey)) {
+            const value = annotations[detectionKey];
             return (
-              <div key={key} className={`detection-item ${value > 0 ? 'active' : ''}`}>
-                <span className="detection-label">{key.replace(/_/g, ' ')}</span>
-                <span className="detection-value">{value}</span>
+              <div key={detectionKey} className={`flex justify-between items-center p-2 rounded text-xs ${
+                value > 0 ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+              }`}>
+                <span className="font-medium text-gray-700">{detectionKey.replace(/_/g, ' ')}</span>
+                <span className={`font-semibold ${value > 0 ? 'text-green-600' : 'text-gray-500'}`}>{value}</span>
               </div>
             );
           }
@@ -310,86 +299,69 @@ const EcoComplianceInspector = () => {
     const complianceScore = calculateComplianceScore(annotations);
 
     return (
-      <div className="split-view active">
-        <button className="close-btn" onClick={onClose}>×</button>
-        <div className="split-left">
-          <div className="enlarged-image" style={{ 
-            background: image.color,
-            width: '400px',
-            height: '300px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'rgba(255,255,255,0.9)',
-            borderRadius: '8px',
-            boxShadow: '0 10px 50px rgba(0, 0, 0, 0.3)'
-          }}>
-            <div style={{ fontSize: '80px', marginBottom: '15px' }}>
-              {getComplianceIcon(annotations.compliance_aspect)}
-            </div>
-            <div style={{ fontSize: '16px', textTransform: 'uppercase', letterSpacing: '2px' }}>
-              Enlarged View
-            </div>
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex z-50">
+        <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800" onClick={onClose}>
+          <X size={20} />
+        </button>
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="w-96 h-96 flex flex-col items-center justify-center rounded-lg" style={{ background: image.color }}>
+            <div className="text-8xl mb-4">{getComplianceIcon(annotations.compliance_aspect)}</div>
+            <div className="text-white text-lg font-semibold uppercase tracking-wide">Enlarged View</div>
           </div>
         </div>
-        <div className="split-right">
-          <div className="metadata-panel">
-            <div className="metadata-header">{image.image_name}</div>
-            
-            <div className="compliance-header">
-              <div className={`compliance-icon compliance-${getComplianceType(annotations.compliance_aspect)}`}>
-                ✓
-              </div>
-              <div className="compliance-title">{annotations.compliance_aspect}</div>
+        <div className="w-96 bg-white overflow-y-auto p-6">
+          <div className="font-bold text-lg text-gray-900 mb-4 border-b border-gray-200 pb-3">{image.image_name}</div>
+          
+          <div className="flex items-center gap-3 mb-4 p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg text-white">
+            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-sm font-bold">✓</div>
+            <div className="font-semibold">{annotations.compliance_aspect}</div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+            <div className="text-sm text-gray-700 leading-relaxed">{annotations.justification}</div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-xl font-bold text-green-600">{totalDetections}</div>
+              <div className="text-xs text-gray-600 uppercase">Total Detections</div>
             </div>
-
-            <div className="justification-box">
-              <div className="justification-text">{annotations.justification}</div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-xl font-bold text-green-600">{activeElements}</div>
+              <div className="text-xs text-gray-600 uppercase">Active Elements</div>
             </div>
-
-            <div className="summary-stats">
-              <div className="stat-box">
-                <div className="stat-number">{totalDetections}</div>
-                <div className="stat-label">Total Detections</div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-number">{activeElements}</div>
-                <div className="stat-label">Active Elements</div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-number">{complianceScore}%</div>
-                <div className="stat-label">Compliance Score</div>
-              </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-xl font-bold text-green-600">{complianceScore}%</div>
+              <div className="text-xs text-gray-600 uppercase">Compliance Score</div>
             </div>
+          </div>
 
-            <DetectionGrid 
-              title="Environmental Detections"
-              annotations={annotations}
-              keys={['Trees', 'Saplings', 'Grass', 'Wet_area', 'Dry_area', 'Dust', 'Fog', 'River', 'Drainage', 'Pond', 'Reservoir', 'Water_mist', 'Water_sprayer']}
-            />
+          <DetectionGrid 
+            title="Environmental Detections"
+            annotations={annotations}
+            keys={['Trees', 'Saplings', 'Grass', 'Wet_area', 'Dry_area', 'Dust', 'Fog', 'River', 'Drainage', 'Pond', 'Reservoir', 'Water_mist', 'Water_sprayer']}
+          />
 
-            <DetectionGrid 
-              title="Infrastructure & Objects"
-              annotations={annotations}
-              keys={['Road', 'Bunds', 'Electrical_poles', 'Fence', 'Vehicles', 'Machinery', 'Humans', 'Cemented_construction', 'Cemented_body', 'Soil_Dump', 'Mines', 'Mine_pit', 'Solar_panels', 'Rock_dump', 'Boundaries', 'House_or_similar_structure']}
-            />
+          <DetectionGrid 
+            title="Infrastructure & Objects"
+            annotations={annotations}
+            keys={['Road', 'Bunds', 'Electrical_poles', 'Fence', 'Vehicles', 'Machinery', 'Humans', 'Cemented_construction', 'Cemented_body', 'Soil_Dump', 'Mines', 'Mine_pit', 'Solar_panels', 'Rock_dump', 'Boundaries', 'House_or_similar_structure']}
+          />
 
-            <div className="metadata-section">
-              <div className="metadata-section-title">Technical Metadata</div>
-              <div style={{ display: 'grid', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                  <span style={{ fontWeight: '500', color: '#666' }}>File Name</span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{image.image_name}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                  <span style={{ fontWeight: '500', color: '#666' }}>Analysis Date</span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{new Date().toLocaleDateString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                  <span style={{ fontWeight: '500', color: '#666' }}>Model Version</span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>v2.1.0</span>
-                </div>
+          <div className="mb-6">
+            <div className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-2">Technical Metadata</div>
+            <div className="space-y-2">
+              <div className="flex justify-between py-2 border-b border-gray-100">
+                <span className="font-medium text-gray-600">File Name</span>
+                <span className="font-mono text-xs text-gray-800">{image.image_name}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-gray-100">
+                <span className="font-medium text-gray-600">Analysis Date</span>
+                <span className="font-mono text-xs text-gray-800">{new Date().toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="font-medium text-gray-600">Model Version</span>
+                <span className="font-mono text-xs text-gray-800">v2.1.0</span>
               </div>
             </div>
           </div>
@@ -399,540 +371,47 @@ const EcoComplianceInspector = () => {
   };
 
   return (
-    <div className="app-container">
-      <style jsx>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #2c5530 0%, #1a3d1f 100%);
-          min-height: 100vh;
-        }
-
-        .app-container {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          min-height: 100vh;
-        }
-
-        .header {
-          background: rgba(255, 255, 255, 0.98);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          padding: 20px;
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-content {
-          max-width: 1400px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          gap: 30px;
-        }
-
-        .logo {
-          font-size: 24px;
-          font-weight: 700;
-          background: linear-gradient(135deg, #2c5530, #1a3d1f);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .search-container {
-          flex: 1;
-          max-width: 600px;
-          position: relative;
-        }
-
-        .search-input {
-          width: 100%;
-          padding: 12px 20px 12px 50px;
-          border: 2px solid #e0e0e0;
-          border-radius: 25px;
-          font-size: 16px;
-          outline: none;
-          transition: all 0.3s ease;
-          background: rgba(255, 255, 255, 0.9);
-        }
-
-        .search-input:focus {
-          border-color: #2c5530;
-          box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 18px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #666;
-        }
-
-        .filters {
-          display: flex;
-          gap: 10px;
-          margin-top: 20px;
-          flex-wrap: wrap;
-        }
-
-        .filter-section {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-right: 20px;
-        }
-
-        .filter-label {
-          font-size: 12px;
-          color: #666;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .filter-btn {
-          padding: 6px 12px;
-          border: 1px solid #e0e0e0;
-          border-radius: 15px;
-          background: rgba(255, 255, 255, 0.9);
-          color: #666;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .filter-btn:hover, .filter-btn.active {
-          border-color: #2c5530;
-          background: #2c5530;
-          color: white;
-          transform: translateY(-1px);
-        }
-
-        .main-content {
-          max-width: 1400px;
-          margin: 0 auto;
-          padding: 30px 20px;
-          transition: all 0.3s ease;
-        }
-
-        .gallery-container {
-          transition: all 0.3s ease;
-        }
-
-        .gallery-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 20px;
-          margin-top: 20px;
-        }
-
-        .image-card {
-          background: white;
-          border-radius: 12px;
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
-          cursor: pointer;
-          position: relative;
-        }
-
-        .image-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .image-placeholder {
-          width: 100%;
-          height: 200px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 48px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .image-icon {
-          font-size: 64px;
-          margin-bottom: 10px;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .image-type-label {
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .compliance-badge {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 10px;
-          font-weight: 600;
-          color: white;
-          text-transform: uppercase;
-        }
-
-        .compliance-dust { background: #ff6b35; }
-        .compliance-water { background: #4ecdc4; }
-        .compliance-afforestation { background: #2ecc71; }
-        .compliance-erosion { background: #f39c12; }
-        .compliance-green { background: #27ae60; }
-        .compliance-air { background: #9b59b6; }
-        .compliance-stormwater { background: #3498db; }
-        .compliance-other { background: #95a5a6; }
-
-        .image-info {
-          padding: 15px;
-        }
-
-        .image-title {
-          font-weight: 600;
-          color: #333;
-          margin-bottom: 5px;
-          font-size: 14px;
-        }
-
-        .image-meta {
-          color: #666;
-          font-size: 11px;
-          margin-bottom: 8px;
-        }
-
-        .compliance-summary {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-top: 8px;
-        }
-
-        .compliance-text {
-          font-size: 11px;
-          color: #2c5530;
-          font-weight: 500;
-        }
-
-        .detection-count {
-          background: #f8f9fa;
-          padding: 2px 6px;
-          border-radius: 8px;
-          font-size: 10px;
-          color: #666;
-        }
-
-        .split-view {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.95);
-          z-index: 1000;
-          display: flex;
-          animation: fadeIn 0.3s ease;
-        }
-
-        .split-left {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 40px;
-        }
-
-        .split-right {
-          width: 450px;
-          background: white;
-          overflow-y: auto;
-          border-left: 1px solid #e0e0e0;
-        }
-
-        .close-btn {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          background: rgba(255, 255, 255, 0.9);
-          border: none;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          cursor: pointer;
-          font-size: 18px;
-          color: #333;
-          transition: all 0.3s ease;
-        }
-
-        .close-btn:hover {
-          background: white;
-          transform: scale(1.1);
-        }
-
-        .metadata-panel {
-          padding: 25px;
-        }
-
-        .metadata-header {
-          font-size: 18px;
-          font-weight: 700;
-          color: #333;
-          margin-bottom: 20px;
-          padding-bottom: 15px;
-          border-bottom: 2px solid #f0f0f0;
-        }
-
-        .compliance-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 15px;
-        }
-
-        .compliance-icon {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 12px;
-          font-weight: bold;
-        }
-
-        .compliance-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #2c5530;
-        }
-
-        .justification-box {
-          background: #f8f9fa;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #2c5530;
-          margin-bottom: 20px;
-        }
-
-        .justification-text {
-          font-size: 13px;
-          line-height: 1.5;
-          color: #444;
-        }
-
-        .detections-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-          gap: 8px;
-          margin-bottom: 20px;
-        }
-
-        .detection-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px 10px;
-          background: #f8f9fa;
-          border-radius: 6px;
-          font-size: 11px;
-        }
-
-        .detection-item.active {
-          background: #e8f5e8;
-          border: 1px solid #2c5530;
-        }
-
-        .detection-label {
-          font-weight: 500;
-          color: #555;
-        }
-
-        .detection-value {
-          font-weight: 600;
-          color: #2c5530;
-        }
-
-        .metadata-section {
-          margin-bottom: 20px;
-        }
-
-        .metadata-section-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: #2c5530;
-          margin-bottom: 10px;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 5px;
-        }
-
-        .stats-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          color: #666;
-          font-size: 14px;
-        }
-
-        .view-toggle {
-          display: flex;
-          gap: 5px;
-        }
-
-        .toggle-btn {
-          padding: 6px 12px;
-          border: 1px solid #e0e0e0;
-          background: white;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          font-size: 12px;
-        }
-
-        .toggle-btn.active {
-          background: #2c5530;
-          color: white;
-        }
-
-        .summary-stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-          gap: 10px;
-          margin-bottom: 15px;
-        }
-
-        .stat-box {
-          background: #f8f9fa;
-          padding: 10px;
-          border-radius: 8px;
-          text-align: center;
-        }
-
-        .stat-number {
-          font-size: 18px;
-          font-weight: 700;
-          color: #2c5530;
-        }
-
-        .stat-label {
-          font-size: 10px;
-          color: #666;
-          text-transform: uppercase;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @media (max-width: 768px) {
-          .header-content {
-            flex-direction: column;
-            gap: 15px;
-          }
-
-          .split-view {
-            flex-direction: column;
-          }
-
-          .split-right {
-            width: 100%;
-            height: 50%;
-          }
-
-          .gallery-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-          }
-
-          .filters {
-            flex-direction: column;
-            gap: 10px;
-          }
-
-          .filter-section {
-            margin-right: 0;
-          }
-        }
-      `}</style>
-
-      <header className="header">
-        <div className="header-content">
-          <div className="logo">EcoCompliance Inspector</div>
-          <div className="search-container">
-            <div style={{ position: 'relative' }}>
-              <span className="search-icon">🔍</span>
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Search by image name, compliance aspect, detections..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Main Content */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${rightPanelExpanded ? 'mr-80' : 'mr-16'}`}
+      >
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">🌱</span>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-gray-900">EcoCompliance Inspector</p>
+                <p className="text-sm text-gray-600">AI-Powered Image Analysis • Compliance Verification</p>
+              </div>
             </div>
-            <div className="filters">
-              <FilterSection 
-                title="Compliance" 
-                category="compliance"
-                options={[
-                  { value: 'all', label: 'All' },
-                  { value: 'dust', label: 'Dust Control' },
-                  { value: 'water', label: 'Water Mgmt' },
-                  { value: 'afforestation', label: 'Afforestation' },
-                  { value: 'erosion', label: 'Erosion Control' }
-                ]}
-              />
-              <FilterSection 
-                title="Environment" 
-                category="environment"
-                options={[
-                  { value: 'all', label: 'All' },
-                  { value: 'humans', label: 'Human Activity' },
-                  { value: 'machinery', label: 'Machinery' },
-                  { value: 'vegetation', label: 'Vegetation' },
-                  { value: 'water_features', label: 'Water Features' }
-                ]}
-              />
-              <FilterSection 
-                title="Infrastructure" 
-                category="infrastructure"
-                options={[
-                  { value: 'all', label: 'All' },
-                  { value: 'roads', label: 'Roads' },
-                  { value: 'construction', label: 'Construction' },
-                  { value: 'mining', label: 'Mining Areas' }
-                ]}
-              />
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search images..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+              {/* Stats */}
+              <div className="text-right px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                <div className="text-lg font-bold text-green-600">{filteredImages.length}</div>
+                <div className="text-xs text-green-700">of {sampleImages.length} images</div>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="main-content">
-        <div className="gallery-container">
-          <div className="stats-bar">
-            <span>Showing {filteredImages.length} of {sampleImages.length} images</span>
-            <div className="view-toggle">
-              <button className="toggle-btn active">Grid</button>
-              <button className="toggle-btn">List</button>
-            </div>
-          </div>
-          
-          <div className="gallery-grid">
+        {/* Main Content Area */}
+        <div className="flex-1 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredImages.map((image, index) => (
               <ImageCard 
                 key={index} 
@@ -942,8 +421,121 @@ const EcoComplianceInspector = () => {
             ))}
           </div>
         </div>
-      </main>
+      </div>
 
+      {/* Right Filter Panel (hoverable) */}
+      <div
+        className={`fixed right-0 top-0 h-full bg-white border-l border-gray-200 z-50 shadow-2xl transition-all duration-300 ${rightPanelExpanded ? 'w-80' : 'w-16'}`}
+        onMouseEnter={() => setRightPanelExpanded(true)}
+        onMouseLeave={() => setRightPanelExpanded(false)}
+      >
+        <div className="h-full flex flex-col">
+          {/* Header (always show icon, expand details on hover) */}
+          <div className="p-4 border-b bg-gradient-to-r from-green-50 to-emerald-50 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+              <Filter size={20} className="text-white" />
+            </div>
+            {rightPanelExpanded && (
+              <div>
+                <h3 className="font-bold text-gray-900">Smart Filters</h3>
+                <p className="text-sm text-gray-600">Refine your analysis</p>
+              </div>
+            )}
+          </div>
+          {/* Only show filter content if expanded */}
+          {rightPanelExpanded && (
+            <div className="flex-1 p-6 overflow-y-auto">
+              {/* Compliance Filters */}
+              <div className="mb-8">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <AlertCircle size={16} className="text-green-500" />
+                  Compliance Type
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { value: 'all', label: 'All Types' },
+                    { value: 'dust', label: 'Dust Control' },
+                    { value: 'water', label: 'Water Management' },
+                    { value: 'afforestation', label: 'Afforestation' },
+                    { value: 'erosion', label: 'Erosion Control' }
+                  ].map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setActiveFilters(prev => ({ ...prev, compliance: option.value }))}
+                      className={`w-full p-3 rounded-lg text-left transition-all ${
+                        activeFilters.compliance === option.value
+                          ? 'bg-green-500 text-white shadow-lg'
+                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Environment Filters */}
+              <div className="mb-8">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Building2 size={16} className="text-green-500" />
+                  Environment
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { value: 'all', label: 'All Elements' },
+                    { value: 'humans', label: 'Human Activity' },
+                    { value: 'machinery', label: 'Machinery' },
+                    { value: 'vegetation', label: 'Vegetation' },
+                    { value: 'water_features', label: 'Water Features' }
+                  ].map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setActiveFilters(prev => ({ ...prev, environment: option.value }))}
+                      className={`w-full p-3 rounded-lg text-left transition-all ${
+                        activeFilters.environment === option.value
+                          ? 'bg-green-500 text-white shadow-lg'
+                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Infrastructure Filters */}
+              <div className="mb-8">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Building2 size={16} className="text-green-500" />
+                  Infrastructure
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { value: 'all', label: 'All Infrastructure' },
+                    { value: 'roads', label: 'Roads' },
+                    { value: 'construction', label: 'Construction' },
+                    { value: 'mining', label: 'Mining Areas' }
+                  ].map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setActiveFilters(prev => ({ ...prev, infrastructure: option.value }))}
+                      className={`w-full p-3 rounded-lg text-left transition-all ${
+                        activeFilters.infrastructure === option.value
+                          ? 'bg-green-500 text-white shadow-lg'
+                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Image Detail Modal */}
       {selectedImage && (
         <MetadataPanel 
           image={selectedImage} 
