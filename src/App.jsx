@@ -35,7 +35,7 @@ import SettingsModal from './components/SettingsModal';
 import HelpModal from './components/HelpModal';
 import Toast from './components/Toast';
 import { sailMines } from './mock-data';
-import { initialTasks as kanbanTasks } from './mock-jira-data';
+import kanbanTasks from './components/kanban/kanban-data.json';
 
 // Main App Component
 function App() {

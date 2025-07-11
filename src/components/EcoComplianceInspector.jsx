@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Filter, X, Search, Building2, AlertCircle } from 'lucide-react';
-import { sampleImages } from '../mock-image-data';
+import imageData from './image-viewer/image-viewer-data.json';
 import ImageCard from './image-viewer/ImageCard';
 import MetadataPanel from './image-viewer/MetadataPanel';
 
@@ -76,7 +76,7 @@ const EcoComplianceInspector = () => {
 
     // Filtered images based on search and filters
     const filteredImages = useMemo(() => {
-        let result = sampleImages;
+        let result = imageData;
 
         // Apply search filter
         if (searchQuery) {
@@ -191,7 +191,7 @@ const EcoComplianceInspector = () => {
                             {/* Stats */}
                             <div className="text-right px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
                                 <div className="text-lg font-bold text-green-600">{filteredImages.length}</div>
-                                <div className="text-xs text-green-700">of {sampleImages.length} images</div>
+                                <div className="text-xs text-green-700">of {imageData.length} images</div>
                             </div>
                         </div>
                     </div>
