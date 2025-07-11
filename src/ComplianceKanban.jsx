@@ -1,73 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, User, Calendar, AlertCircle, CheckCircle, FileText, MessageSquare, Eye, Clock, MapPin } from 'lucide-react';
+import kanbanData from './components/kanban/kanbandata.json';
 
-const ComplianceKanban = () => {
-  const [tasks, setTasks] = useState([
-    {
-      id: '1',
-      title: 'Water Quality Monitoring - Site A',
-      leaseName: 'Northern Fields Lease',
-      area: 150.5,
-      conditionType: 'Environmental',
-      priority: 1,
-      assignedTo: 'John Smith',
-      assignedBy: 'Sarah Johnson',
-      createDate: '2024-01-15',
-      deadline: '2024-02-15',
-      completionDate: null,
-      approvedDate: null,
-      validationDate: null,
-      closureDate: null,
-      reopenedDate: null,
-      evidence: [],
-      comments: [],
-      validationStatus: 'pending',
-      column: 'assigned'
-    },
-    {
-      id: '2',
-      title: 'Soil Contamination Assessment',
-      leaseName: 'Eastern Block Lease',
-      area: 200.0,
-      conditionType: 'Regulatory',
-      priority: 2,
-      assignedTo: 'Mike Davis',
-      assignedBy: 'Sarah Johnson',
-      createDate: '2024-01-20',
-      deadline: '2024-03-01',
-      completionDate: '2024-02-28',
-      approvedDate: null,
-      validationDate: null,
-      closureDate: null,
-      reopenedDate: null,
-      evidence: ['soil_sample_1.pdf', 'lab_report_001.pdf'],
-      comments: ['Initial samples collected', 'Waiting for lab results'],
-      validationStatus: 'pending',
-      column: 'evidence-submitted'
-    },
-    {
-      id: '3',
-      title: 'Air Quality Compliance Check',
-      leaseName: 'Western Ridge Lease',
-      area: 85.2,
-      conditionType: 'Environmental',
-      priority: 3,
-      assignedTo: 'Lisa Chen',
-      assignedBy: 'Tom Wilson',
-      createDate: '2024-01-25',
-      deadline: '2024-02-28',
-      completionDate: '2024-02-27',
-      approvedDate: '2024-02-29',
-      validationDate: '2024-03-01',
-      closureDate: null,
-      reopenedDate: null,
-      evidence: ['air_quality_report.pdf'],
-      comments: ['Measurements completed', 'Report submitted for review'],
-      validationStatus: 'validated',
-      column: 'in-progress'
-    }
-  ]);
-
+const ComplianceKanban = ({ tasks, allTasks }) => {
+  const [localTasks, setLocalTasks] = useState(tasks);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [newTask, setNewTask] = useState({
@@ -83,138 +19,40 @@ const ComplianceKanban = () => {
     deadline: ''
   });
 
-  // Sample data structure based on your CSV - in production, this would come from your database
-  const complianceData = {
-    "Northern Fields Lease": {
-      areas: {
-        "150.5": {
-          documents: {
-            "Environmental Assessment Report": {
-              conditionTypes: {
-                "Environmental": {
-                  shortenedConditions: {
-                    "Water quality monitoring required": "Conduct monthly water quality tests at designated sampling points to ensure compliance with environmental standards",
-                    "Air quality assessment needed": "Perform quarterly air quality measurements and submit reports to regulatory authority"
-                  }
-                },
-                "Regulatory": {
-                  shortenedConditions: {
-                    "Permit renewal required": "Submit permit renewal application with supporting documentation 60 days before expiration",
-                    "Compliance report submission": "Submit quarterly compliance reports detailing all environmental monitoring activities"
-                  }
-                }
-              }
-            },
-            "Safety Management Plan": {
-              conditionTypes: {
-                "Safety": {
-                  shortenedConditions: {
-                    "Safety training mandatory": "All personnel must complete safety training program before site access",
-                    "Equipment inspection required": "Monthly inspection of all safety equipment and emergency response systems"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "200.0": {
-          documents: {
-            "Impact Assessment Study": {
-              conditionTypes: {
-                "Environmental": {
-                  shortenedConditions: {
-                    "Soil contamination check": "Conduct soil contamination assessment at specified locations using approved methodology",
-                    "Groundwater monitoring": "Install groundwater monitoring wells and conduct monthly sampling"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "Eastern Block Lease": {
-      areas: {
-        "200.0": {
-          documents: {
-            "Regulatory Compliance Manual": {
-              conditionTypes: {
-                "Regulatory": {
-                  shortenedConditions: {
-                    "License verification needed": "Verify all operational licenses are current and compliant with regulations",
-                    "Documentation review required": "Review and update all regulatory documentation annually"
-                  }
-                },
-                "Operational": {
-                  shortenedConditions: {
-                    "Operational audit required": "Conduct comprehensive operational audit to ensure compliance with lease terms",
-                    "Performance metrics review": "Review operational performance metrics against agreed benchmarks"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "175.8": {
-          documents: {
-            "Environmental Impact Report": {
-              conditionTypes: {
-                "Environmental": {
-                  shortenedConditions: {
-                    "Biodiversity assessment": "Conduct biodiversity impact assessment in sensitive ecological areas",
-                    "Waste management review": "Review and optimize waste management procedures for environmental compliance"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "Western Ridge Lease": {
-      areas: {
-        "85.2": {
-          documents: {
-            "Air Quality Management Plan": {
-              conditionTypes: {
-                "Environmental": {
-                  shortenedConditions: {
-                    "Air quality compliance check": "Conduct air quality measurements to ensure compliance with emission standards",
-                    "Dust control measures": "Implement and monitor dust control measures during operational activities"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  };
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  // Use the actual kanban data from JSON file
+  const complianceData = kanbanData;
+
 
   // Helper functions for cascading dropdowns
   const getAvailableAreas = () => {
     if (!newTask.leaseName) return [];
-    return Object.keys(complianceData[newTask.leaseName]?.areas || {});
+    return Object.keys(complianceData[newTask.leaseName] || {});
   };
 
   const getAvailableDocuments = () => {
     if (!newTask.leaseName || !newTask.area) return [];
-    return Object.keys(complianceData[newTask.leaseName]?.areas[newTask.area]?.documents || {});
+    return Object.keys(complianceData[newTask.leaseName]?.[newTask.area] || {});
   };
 
   const getAvailableConditionTypes = () => {
     if (!newTask.leaseName || !newTask.area || !newTask.documentName) return [];
-    return Object.keys(complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes || {});
+    return Object.keys(complianceData[newTask.leaseName]?.[newTask.area]?.[newTask.documentName] || {});
   };
 
   const getAvailableShortenedConditions = () => {
     if (!newTask.leaseName || !newTask.area || !newTask.documentName || !newTask.conditionType) return [];
-    return Object.keys(complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes[newTask.conditionType]?.shortenedConditions || {});
+    const conditions = complianceData[newTask.leaseName]?.[newTask.area]?.[newTask.documentName]?.[newTask.conditionType];
+    return Array.isArray(conditions) ? conditions : [];
   };
 
   const getConditionText = () => {
-    if (!newTask.leaseName || !newTask.area || !newTask.documentName || !newTask.conditionType || !newTask.shortenedConditionText) return '';
-    return complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes[newTask.conditionType]?.shortenedConditions[newTask.shortenedConditionText] || '';
+    // Since conditions are stored as arrays, we return the selected condition text itself
+    if (!newTask.shortenedConditionText) return '';
+    return newTask.shortenedConditionText;
   };
 
   // Reset dependent fields when parent changes
@@ -261,11 +99,11 @@ const ComplianceKanban = () => {
   };
 
   const handleShortenedConditionChange = (shortenedConditionText) => {
-    const conditionText = complianceData[newTask.leaseName]?.areas[newTask.area]?.documents[newTask.documentName]?.conditionTypes[newTask.conditionType]?.shortenedConditions[shortenedConditionText] || '';
+    // Since conditions are stored as arrays, the condition text is the same as the selected condition
     setNewTask({
       ...newTask,
       shortenedConditionText,
-      conditionText
+      conditionText: shortenedConditionText
     });
   };
 
@@ -278,7 +116,7 @@ const ComplianceKanban = () => {
   ];
 
   const getTasksByColumn = (columnId) => {
-    return tasks.filter(task => task.column === columnId);
+    return localTasks.filter(task => task.column === columnId);
   };
 
   const getPriorityColor = (priority) => {
@@ -420,7 +258,7 @@ const ComplianceKanban = () => {
   const moveTask = (taskId, newColumn) => {
     const currentDate = new Date().toISOString().split('T')[0];
     
-    setTasks(tasks.map(task => {
+    setLocalTasks(localTasks.map(task => {
       if (task.id === taskId) {
         const updatedTask = { ...task, column: newColumn };
         
@@ -517,7 +355,7 @@ const ComplianceKanban = () => {
       column: 'assigned'
     };
 
-    setTasks([...tasks, task]);
+    setLocalTasks([...localTasks, task]);
     setNewTask({
       title: '',
       leaseName: '',
@@ -602,7 +440,7 @@ const ComplianceKanban = () => {
       if (newComment.trim()) {
         task.comments.push(`${new Date().toLocaleString()}: ${newComment.trim()}`);
         setNewComment('');
-        setTasks([...tasks]);
+        setLocalTasks([...localTasks]);
       }
     };
 
@@ -610,7 +448,7 @@ const ComplianceKanban = () => {
       if (newEvidence.trim()) {
         task.evidence.push(newEvidence.trim());
         setNewEvidence('');
-        setTasks([...tasks]);
+        setLocalTasks([...localTasks]);
       }
     };
 
@@ -767,7 +605,7 @@ const ComplianceKanban = () => {
                       closureDate: null,
                       column: 'rejected'
                     };
-                    setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
+                    setLocalTasks(localTasks.map(t => t.id === task.id ? updatedTask : t));
                     setSelectedTask(updatedTask);
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
@@ -786,7 +624,7 @@ const ComplianceKanban = () => {
                       approvedDate: task.approvedDate || currentDate,
                       column: 'completed'
                     };
-                    setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
+                    setLocalTasks(localTasks.map(t => t.id === task.id ? updatedTask : t));
                     setSelectedTask(updatedTask);
                   }}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -969,9 +807,9 @@ const ComplianceKanban = () => {
         </div>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="grid grid-cols-5 gap-4 overflow-x-auto pb-4">
         {columns.map((column) => (
-          <div key={column.id} className="min-w-[320px] flex-shrink-0">
+          <div key={column.id} className="min-w-full flex-shrink-0">
             <div className={`${column.color} p-4 rounded-t-lg border-b-2 border-gray-300`}>
               <h2 className={`font-semibold ${column.textColor} text-lg`}>{column.title}</h2>
               <span className="text-sm text-gray-600">

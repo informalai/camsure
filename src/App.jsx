@@ -35,12 +35,13 @@ import SettingsModal from './components/SettingsModal';
 import HelpModal from './components/HelpModal';
 import Toast from './components/Toast';
 import { sailMines } from './mock-data';
+import { initialTasks as kanbanTasks } from './mock-jira-data';
 
 // Main App Component
 function App() {
   const [filteredMines, setFilteredMines] = useState(sailMines);
   const [leftPanelExpanded, setLeftPanelExpanded] = useState(false);
-  const [rightPanelExpanded, setRightPanelExpanded] = useState(false);
+  const [isRightPanelOpen, setRightPanelOpen] = useState(false);
   const [activeView, setActiveView] = useState('kanban');
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -56,12 +57,44 @@ function App() {
   const [theme, setTheme] = useState('light');
   const [userNotifications, setUserNotifications] = useState(true);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [kanbanFilters, setKanbanFilters] = useState({});
 
-  // Dummy notifications
+  const kanbanFilterConfig = [
+    { title: 'Status', key: 'column', icon: 'List' },
+    { title: 'Assignee', key: 'assignedTo', icon: 'User' },
+    { title: 'Priority', key: 'priority', icon: 'CheckCircle' },
+  ];
+
+  const filteredTasks = React.useMemo(() => {
+    return kanbanTasks.filter(task => {
+      const { searchTerm, column, assignedTo, priority } = kanbanFilters;
+      if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+      if (column && task.column !== column) {
+        return false;
+      }
+      if (assignedTo && task.assignedTo !== assignedTo) {
+        return false;
+      }
+      if (priority && task.priority !== priority) {
+        return false;
+      }
+      return true;
+    });
+  }, [kanbanFilters]);
+
+
+  // Kanban board notifications
   const notifications = [
-    { id: 1, text: 'Compliance report for Gua Main Mine submitted.', time: '2h ago' },
-    { id: 2, text: 'Action required: CTO renewal for Gua West Mine.', time: '5h ago' },
-    { id: 3, text: 'New penalty guidelines released.', time: '1d ago' },
+    { id: 1, text: 'You have been assigned: "Construct 4 ft. RCC pillars to demarcate mining lease boundary"', time: '30m ago' },
+    { id: 2, text: 'Your evidence for "Stack top soil with proper slope" has been approved by Ankit', time: '1h ago' },
+    { id: 3, text: 'AI analysis completed on your submitted evidence for "Maintain good housekeeping"', time: '2h ago' },
+    { id: 4, text: 'Evidence rejected for "Operations should not intersect groundwater table" - Location out of scope', time: '3h ago' },
+    { id: 5, text: 'Task "Inscribe RCC pillar\'s forward and back bearing" moved to Completed by Vinay', time: '4h ago' },
+    { id: 6, text: 'New comment added to "Fill over OB after mine reclamation" - Review required', time: '6h ago' },
+    { id: 7, text: 'Deadline approaching: "Maintain the wholesomeness of water" due in 2 days', time: '1d ago' },
+    { id: 8, text: 'Task reopened: "Keep process effluent in close-circuit" requires additional documentation', time: '1d ago' },
   ];
   // Dummy profile actions
   const profileActions = [
@@ -84,7 +117,7 @@ function App() {
   );
 
   const navigationItems = [
-    { id: 'kanban', icon: FileText, label: 'WFM Kanban', color: 'blue' },
+    { id: 'kanban', icon: FileText, label: 'Kanban', color: 'blue' },
     { id: 'imageviewer', icon: Map, label: 'AI Gallery', color: 'green' },
     { id: 'dashboard', icon: Brain, label: 'Taskboard', color: 'purple' }
   ];
@@ -92,13 +125,13 @@ function App() {
   const renderActiveView = () => {
     switch (activeView) {
       case 'kanban':
-        return <ComplianceKanban />;
+        return <ComplianceKanban tasks={filteredTasks} allTasks={kanbanTasks} />;
       case 'imageviewer':
         return <EcoComplianceInspector />;
       case 'dashboard':
         return <DashboardPage />;
       default:
-        return <ComplianceKanban />;
+        return <ComplianceKanban tasks={filteredTasks} allTasks={kanbanTasks} />;
     }
   };
 
@@ -127,7 +160,7 @@ function App() {
   }, [theme]);
 
   return (
-    <div className={`min-h-screen bg-gray-50 flex ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 ${theme === 'dark' ? 'dark' : ''}`}>
       {/* Left Sidebar */}
       <div
         className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40 transition-all duration-300 ${leftPanelExpanded ? 'w-64' : 'w-16'}`}
@@ -142,8 +175,8 @@ function App() {
             </div>
             {leftPanelExpanded && (
               <div className="overflow-hidden">
-                <p className="font-bold text-gray-900 whitespace-nowrap">Compass</p>
-                <p className="text-xs text-gray-500 whitespace-nowrap">Intelligence</p>
+                <p className="font-bold text-gray-900 whitespace-nowrap">Camsure</p>
+                <p className="text-xs text-gray-500 whitespace-nowrap">WFM Tool</p>
               </div>
             )}
           </div>
@@ -154,7 +187,12 @@ function App() {
           {navigationItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveView(item.id)}
+              onClick={() => {
+                setActiveView(item.id);
+                if (item.id !== 'kanban') {
+                  setRightPanelOpen(false);
+                }
+              }}
               className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${activeView === item.id
                 ? 'bg-blue-50 text-blue-600 border border-blue-200'
                 : 'text-gray-600 hover:bg-gray-50'
@@ -173,7 +211,7 @@ function App() {
 
       {/* Main Content */}
       <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${leftPanelExpanded ? 'ml-64' : 'ml-16'} ${rightPanelExpanded ? 'mr-80' : 'mr-16'}`}
+        className={`flex-1 flex flex-col transition-all duration-300 ${leftPanelExpanded ? 'ml-64' : 'ml-16'} ${isRightPanelOpen ? 'mr-80' : ''}`}
       >
         {/* Top Header */}
         <header className={`bg-white border-b border-gray-200 px-6 py-4 w-full relative`}>
@@ -185,10 +223,10 @@ function App() {
                 </div>
                 <div>
                   <p className="text-lg font-bold text-gray-900">
-                    🧭 Compass Informalai
+                  📷 Camsure Informalai
                   </p>
                   <p className="text-sm text-gray-600">
-                    SAIL Compliance Platform • Compliance Issues
+                    SAIL Work Force Management Tool
                   </p>
                 </div>
               </div>
@@ -199,6 +237,15 @@ function App() {
               >
                 Help
               </button>
+              {activeView === 'kanban' && (
+                  <button
+                    onClick={() => setRightPanelOpen(!isRightPanelOpen)}
+                    className="ml-4 p-2 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg"
+                    title="Toggle Filters"
+                  >
+                    <Filter size={20} />
+                  </button>
+              )}
             </div>
             <div className="flex items-center gap-4">
               {/* Search Icon */}
@@ -249,31 +296,33 @@ function App() {
                     <div className="font-bold text-gray-900 mb-2">Notifications</div>
                     <ul className="divide-y divide-gray-100">
                       {notifications.map(n => (
-                        <li key={n.id} className="py-2 text-gray-800 flex justify-between items-center">
-                          <span>{n.text}</span>
-                          <span className="text-xs text-gray-400 ml-2">{n.time}</span>
+                        <li key={n.id} className="py-2 text-sm text-gray-800">
+                          {n.text} <span className="text-xs text-gray-400">({n.time})</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
               </div>
-              {/* User/Profile */}
+              {/* Profile */}
               <div className="relative">
                 <button
-                  className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center focus:outline-none"
+                  className="p-2 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg"
                   onClick={() => setProfileOpen((v) => !v)}
                   ref={profileRef}
                 >
-                  <User size={16} className="text-white" />
+                  <User size={20} />
                 </button>
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2">
-                    <div className="px-4 py-2 border-b text-gray-900 font-bold">Naveen Kala</div>
-                    <ul>
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+                    <ul className="divide-y divide-gray-100">
                       {profileActions.map(a => (
-                        <li key={a.id} className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-800 text-sm"
-                          onClick={() => a.label === 'Settings' ? (setSettingsOpen(true), setProfileOpen(false)) : null}
+                        <li
+                          key={a.id}
+                          className="py-2 px-4 hover:bg-blue-50 cursor-pointer text-gray-800 text-sm"
+                          onClick={() => {
+                            if (a.label === 'Settings') setSettingsOpen(true);
+                          }}
                         >
                           {a.label}
                         </li>
@@ -288,7 +337,7 @@ function App() {
                 title="Celebrate!"
               >
                 <div className="text-2xl font-bold text-green-600">{overallCompliance}%</div>
-                <div className="text-xs text-green-700">Overall Score</div>
+                <div className="text-xs text-green-700">Overall Completion</div>
                 {/* Graffiti/Confetti burst */}
                 {graffiti && (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-50">
@@ -300,44 +349,26 @@ function App() {
           </div>
         </header>
 
-      
-
-        {/* Main Content Area */}
-        <div className="flex-1 w-full flex flex-col">
-          {activeView === 'dashboard' ? (
-            <DashboardPage />
-          ) : activeView === 'kanban' ? (
-            <>
-              <div className="p-6 w-full flex flex-col min-h-[300px] items-center justify-center">
-                {loading ? (
-                  <div className="flex flex-col items-center justify-center w-full h-64">
-                    <div className="loader mb-4" />
-                    <div className="text-gray-500">Loading compliance data...</div>
-                  </div>
-                ) : (
-                  renderActiveView()
-                )}
-              </div>
-              <div className="p-6 mt-8 w-full flex flex-col">
-                <QuickActions />
-              </div>
-              
-            </>
-          ) : (
-            <div className="p-6 w-full flex flex-col">
-              {renderActiveView()}
+        {/* View Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          {loading ? (
+            <div className="flex justify-center items-center h-full">
+              <Activity className="animate-spin text-blue-500" size={48} />
             </div>
+          ) : (
+            renderActiveView()
           )}
-        </div>
-
+        </main>
       </div>
 
-      {/* Right Filter Panel (hoverable) */}
+      {/* Right Filter Panel */}
       <FilterPanel
-        isOpen={rightPanelExpanded}
-        onClose={() => setRightPanelExpanded(false)}
-        onFilterChange={() => {}}
-        mines={sailMines}
+        isOpen={isRightPanelOpen && activeView === 'kanban'}
+        onClose={() => setRightPanelOpen(false)}
+        onFilterChange={setKanbanFilters}
+        items={kanbanTasks}
+        filterConfig={kanbanFilterConfig}
+        searchPlaceholder="Search tasks..."
       />
       <Toast message={toast} onClose={() => setToast('')} />
       <SettingsModal

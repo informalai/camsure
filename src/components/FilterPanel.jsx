@@ -1,30 +1,53 @@
-import React, { useState } from 'react';
-import { Filter, X, Search, Building2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Filter, X, Search, Tag, List, User, CheckCircle } from 'lucide-react';
 
-const FilterPanel = ({ isOpen, onClose, onFilterChange, mines }) => {
-  const [selectedType, setSelectedType] = useState('All');
-  const [selectedSite, setSelectedSite] = useState('All');
+const FilterPanel = ({
+  isOpen,
+  onClose,
+  onFilterChange,
+  items,
+  filterConfig,
+  searchPlaceholder = "Search items..."
+}) => {
+  const [filters, setFilters] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
 
-  const mineTypes = ['All', ...Array.from(new Set(mines.map(m => m.type)))];
-  const siteLocations = ['All', ...Array.from(new Set(mines.map(m => m.location)))];
+  const filterOptions = useMemo(() => {
+    const options = {};
+    if (!items) return options;
 
-  const handleTypeFilter = (type) => {
-    setSelectedType(type);
-    onFilterChange({ type, site: selectedSite });
+    filterConfig.forEach(config => {
+      options[config.key] = ['All', ...Array.from(new Set(items.map(item => item[config.key]).filter(Boolean)))];
+    });
+    return options;
+  }, [items, filterConfig]);
+
+  const handleFilterClick = (key, value) => {
+    const newFilters = { ...filters, [key]: value === 'All' ? undefined : value };
+    setFilters(newFilters);
+    onFilterChange({ ...newFilters, searchTerm });
   };
-
-  const handleSiteFilter = (site) => {
-    setSelectedSite(site);
-    onFilterChange({ type: selectedType, site });
+  
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    onFilterChange({ ...filters, searchTerm: e.target.value });
   };
 
   const clearFilters = () => {
-    setSelectedType('All');
-    setSelectedSite('All');
+    setFilters({});
     setSearchTerm('');
-    onFilterChange({ type: 'All', site: 'All' });
+    onFilterChange({});
   };
+  
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'User': return <User size={16} className="text-blue-500" />;
+      case 'CheckCircle': return <CheckCircle size={16} className="text-blue-500" />;
+      case 'List': return <List size={16} className="text-blue-500" />;
+      default: return <Tag size={16} className="text-blue-500" />;
+    }
+  };
+
 
   if (!isOpen) return null;
 
@@ -40,7 +63,7 @@ const FilterPanel = ({ isOpen, onClose, onFilterChange, mines }) => {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Smart Filters</h3>
-                <p className="text-sm text-gray-600">Refine your analysis</p>
+                <p className="text-sm text-gray-600">Refine your view</p>
               </div>
             </div>
             <button
@@ -56,9 +79,9 @@ const FilterPanel = ({ isOpen, onClose, onFilterChange, mines }) => {
             <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search mines..."
+              placeholder={searchPlaceholder}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -66,49 +89,29 @@ const FilterPanel = ({ isOpen, onClose, onFilterChange, mines }) => {
 
         {/* Filter Content */}
         <div className="flex-1 p-6 overflow-y-auto">
-          {/* Mine Type Filter */}
-          <div className="mb-8">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Building2 size={16} className="text-blue-500" />
-              Operation Type
-            </h4>
-            <div className="space-y-2">
-              {mineTypes.map(type => (
-                <button
-                  key={type}
-                  onClick={() => handleTypeFilter(type)}
-                  className={`w-full p-3 rounded-lg text-left transition-all ${selectedType === type
-                    ? 'bg-blue-500 text-white shadow-lg'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+          {filterConfig.map(config => (
+            <div className="mb-8" key={config.key}>
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                {getIcon(config.icon)}
+                {config.title}
+              </h4>
+              <div className="space-y-2">
+                {(filterOptions[config.key] || []).map(option => (
+                  <button
+                    key={option}
+                    onClick={() => handleFilterClick(config.key, option)}
+                    className={`w-full p-3 rounded-lg text-left transition-all ${
+                      (filters[config.key] || 'All') === option
+                      ? 'bg-blue-500 text-white shadow-lg'
+                      : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
                     }`}
-                >
-                  {type}
-                </button>
-              ))}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Location Filter */}
-          <div className="mb-8">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Building2 size={16} className="text-blue-500" />
-              Location
-            </h4>
-            <div className="space-y-2">
-              {siteLocations.map(site => (
-                <button
-                  key={site}
-                  onClick={() => handleSiteFilter(site)}
-                  className={`w-full p-3 rounded-lg text-left transition-all ${selectedSite === site
-                    ? 'bg-blue-500 text-white shadow-lg'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                    }`}
-                >
-                  {site}
-                </button>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Footer */}

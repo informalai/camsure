@@ -1,172 +1,253 @@
 export const initialTasks = [
-    {
-        id: '1',
-        title: 'Water Quality Monitoring - Site A',
-        leaseName: 'Northern Fields Lease',
-        area: 150.5,
-        conditionType: 'Environmental',
-        priority: 1,
-        assignedTo: 'John Smith',
-        assignedBy: 'Sarah Johnson',
-        createDate: '2024-01-15',
-        deadline: '2024-02-15',
-        completionDate: null,
-        approvedDate: null,
-        validationDate: null,
-        closureDate: null,
-        reopenedDate: null,
-        evidence: [],
-        comments: [],
-        validationStatus: 'pending',
-        column: 'assigned'
-    },
-    {
-        id: '2',
-        title: 'Soil Contamination Assessment',
-        leaseName: 'Eastern Block Lease',
-        area: 200.0,
-        conditionType: 'Regulatory',
-        priority: 2,
-        assignedTo: 'Mike Davis',
-        assignedBy: 'Sarah Johnson',
-        createDate: '2024-01-20',
-        deadline: '2024-03-01',
-        completionDate: '2024-02-28',
-        approvedDate: null,
-        validationDate: null,
-        closureDate: null,
-        reopenedDate: null,
-        evidence: ['soil_sample_1.pdf', 'lab_report_001.pdf'],
-        comments: ['Initial samples collected', 'Waiting for lab results'],
-        validationStatus: 'pending',
-        column: 'evidence-submitted'
-    },
-    {
-        id: '3',
-        title: 'Air Quality Compliance Check',
-        leaseName: 'Western Ridge Lease',
-        area: 85.2,
-        conditionType: 'Environmental',
-        priority: 3,
-        assignedTo: 'Lisa Chen',
-        assignedBy: 'Tom Wilson',
-        createDate: '2024-01-25',
-        deadline: '2024-02-28',
-        completionDate: '2024-02-27',
-        approvedDate: '2024-02-29',
-        validationDate: '2024-03-01',
-        closureDate: null,
-        reopenedDate: null,
-        evidence: ['air_quality_report.pdf'],
-        comments: ['Measurements completed', 'Report submitted for review'],
-        validationStatus: 'validated',
-        column: 'in-progress'
-    }
+  // ASSIGNED COLUMN (2 tickets)
+  {
+    id: '1',
+    title: 'Construct 4 ft. RCC pillars to demarcate mining lease boundary',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'FC Stage I',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Construct 4 ft. RCC pillars to demarcate mining lease boundary',
+    conditionText: 'The boundary of safety zone shall be demarcated on ground at the project cost, by erecting four feet high reinforced cement concrete pillars, each inscribed with its serial number, forward and back bearing and distance from pillar to pillar.',
+    priority: 3,
+    assignedTo: 'Ankit',
+    assignedBy: 'Naveen',
+    createDate: '2024-12-20',
+    deadline: '2025-01-25',
+    completionDate: null,
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: null,
+    evidence: [],
+    comments: [],
+    validationStatus: 'pending',
+    column: 'assigned'
+  },
+  {
+    id: '2',
+    title: 'Maintain the wholesomeness of water',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTE',
+    conditionType: 'General',
+    shortenedConditionText: 'Maintain the wholesomeness of water',
+    conditionText: 'That, the occupier shall create new water body(ies) / remove deposit(s) of existing water body(ies) and nearby stream(s) and pond(s) and shall maintain the wholesomeness of water.',
+    priority: 3,
+    assignedTo: 'Anshul',
+    assignedBy: 'Vinay',
+    createDate: '2024-12-18',
+    deadline: '2025-01-30',
+    completionDate: null,
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: null,
+    evidence: [],
+    comments: [],
+    validationStatus: 'pending',
+    column: 'assigned'
+  },
+
+  // IN PROGRESS COLUMN (2 tickets)
+  {
+    id: '3',
+    title: 'Fill over OB after mine reclamation',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTO',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Fill over OB after mine reclamation',
+    conditionText: 'That, the shall preserve the top soil, fill over OB after mine reclamation and do tree plantation',
+    priority: 3,
+    assignedTo: 'Vinay',
+    assignedBy: 'Ankit',
+    createDate: '2024-09-11',
+    deadline: '2024-10-04',
+    completionDate: null,
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: null,
+    evidence: [],
+    comments: ['Initial assessment completed', 'Waiting for environmental clearance'],
+    validationStatus: 'pending',
+    column: 'in-progress'
+  },
+  {
+    id: '4',
+    title: 'Ensure no natural watercourse is obstructed by mining operations',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTO',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Ensure no natural watercourse is obstructed by mining operations',
+    conditionText: 'That, The project proponent shall ensure that no natural watercourse shall be obstructed due to any mining operations. Adequate measures shall be taken for conservation and protection of the first order and the second order streams, if any emanating/passing through the mine lease area during the course of mining operation.',
+    priority: 4,
+    assignedTo: 'Shreyas',
+    assignedBy: 'Ankit',
+    createDate: '2024-03-31',
+    deadline: '2024-04-16',
+    completionDate: null,
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: null,
+    evidence: [],
+    comments: ['Site survey in progress', 'Environmental impact assessment pending'],
+    validationStatus: 'pending',
+    column: 'in-progress'
+  },
+
+  // EVIDENCE SUBMITTED COLUMN (2 tickets)
+  {
+    id: '5',
+    title: 'Stack top soil with proper slope at earmarked sites',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTO',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Stack top soil with proper slope at earmarked sites',
+    conditionText: 'That, Top soil should be stacked with proper slope at earmarked site(s) only with adequate measures and should be used for reclamation and rehabilitation of mined out areas.',
+    priority: 2,
+    assignedTo: 'Shreyas',
+    assignedBy: 'Ankit',
+    createDate: '2024-04-15',
+    deadline: '2024-05-30',
+    completionDate: '2024-05-25',
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: null,
+    evidence: ['topsoil_stacking_report.pdf', 'site_photos_may2024.jpg'],
+    comments: ['Topsoil stacking completed as per guidelines', 'Photos and documentation submitted'],
+    validationStatus: 'pending',
+    column: 'evidence-submitted'
+  },
+  {
+    id: '6',
+    title: 'Maintain good housekeeping',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTO',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Maintain good housekeeping',
+    conditionText: 'That, the occupier shall install and maintain foggers type water sprinklers to control fugitive emission and shall maintain a good house keeping;',
+    priority: 1,
+    assignedTo: 'Ankit',
+    assignedBy: 'Naveen',
+    createDate: '2024-06-01',
+    deadline: '2024-07-04',
+    completionDate: '2024-06-30',
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: null,
+    evidence: ['housekeeping_checklist.pdf', 'sprinkler_installation_photos.jpg'],
+    comments: ['Foggers installed and operational', 'Daily housekeeping routine established'],
+    validationStatus: 'pending',
+    column: 'evidence-submitted'
+  },
+
+  // COMPLETED COLUMN (2 tickets)
+  {
+    id: '7',
+    title: 'Inscribe RCC pillar\'s forward and back bearing on it',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'FC Stage I',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Inscribe RCC pillar\'s forward and back bearing on it',
+    conditionText: 'The State Forest Department/ UA shall also submit the DGPS details of the mining lease area and demarcate the boundary of diverted forest land, by erecting four feet high reinforced cement concrete pillars, each inscribed with its serial number, forward and back bearing and distance from pillar to pillar.',
+    priority: 1,
+    assignedTo: 'Vinay',
+    assignedBy: 'Ankit',
+    createDate: '2024-06-08',
+    deadline: '2024-07-01',
+    completionDate: '2024-06-30',
+    approvedDate: '2024-07-02',
+    validationDate: '2024-07-02',
+    closureDate: '2024-07-02',
+    reopenedDate: null,
+    evidence: ['pillar_inscriptions.jpg', 'gps_coordinates.pdf'],
+    comments: ['All pillars inscribed with required details', 'DGPS coordinates verified'],
+    validationStatus: 'validated',
+    column: 'completed'
+  },
+  {
+    id: '8',
+    title: 'Maintain benches height and slope as per approved Mining Plan',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTO',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Maintain benches height and slope as per approved Mining Plan',
+    conditionText: 'That, The mining operations shall be restricted to above ground water table and it should not intersect groundwater table. In case of working below the ground water table, prior approval of the Ground Water Directorate, Government of Jharkhand / Central Ground Water Board shall be obtained. Benches height and slope shall be maintained as per approved Mining Plan.',
+    priority: 2,
+    assignedTo: 'Vinay',
+    assignedBy: 'Ankit',
+    createDate: '2024-03-02',
+    deadline: '2024-03-15',
+    completionDate: '2024-03-14',
+    approvedDate: '2024-03-17',
+    validationDate: '2024-03-17',
+    closureDate: '2024-03-17',
+    reopenedDate: null,
+    evidence: ['bench_measurements.pdf', 'slope_analysis.pdf'],
+    comments: ['Bench specifications comply with approved plan', 'Regular monitoring established'],
+    validationStatus: 'validated',
+    column: 'completed'
+  },
+
+  // REJECTED/REOPENED COLUMN (2 tickets)
+  {
+    id: '9',
+    title: 'Operations should not intersect groundwater table',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTE',
+    conditionType: 'Specific',
+    shortenedConditionText: 'Operations should not intersect groundwater table',
+    conditionText: 'That, The mining operations shall be restricted to above ground water table and it should not intersect groundwater table. In case of working below the ground water table, prior approval of the Ground Water Directorate, Government of Jharkhand / Central Ground Water Board shall be obtained.',
+    priority: 4,
+    assignedTo: 'test_user',
+    assignedBy: 'Shreyas',
+    createDate: '2024-05-06',
+    deadline: '2024-06-01',
+    completionDate: '2024-05-30',
+    approvedDate: null,
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: '2024-06-05',
+    evidence: ['groundwater_analysis.pdf'],
+    comments: ['Initial assessment failed - water table intersection detected', 'Requires additional mitigation measures', 'Reopened for corrective action'],
+    validationStatus: 'rejected',
+    column: 'rejected'
+  },
+  {
+    id: '10',
+    title: 'Keep process effluent in close-circuit',
+    leaseName: 'Topailore',
+    area: '14.15',
+    documentName: 'CTE',
+    conditionType: 'General',
+    shortenedConditionText: 'Keep process effluent in close-circuit',
+    conditionText: 'That, the occupier shall impart treatment as per Central Pollution Control Board text to wastewater and shall keep process effluent in close-circuit and effluent from other sources in conformity with the standard(s).',
+    priority: 3,
+    assignedTo: 'test_user',
+    assignedBy: 'Shreyas',
+    createDate: '2024-05-29',
+    deadline: '2024-06-05',
+    completionDate: '2024-06-04',
+    approvedDate: '2024-06-06',
+    validationDate: null,
+    closureDate: null,
+    reopenedDate: '2024-06-10',
+    evidence: ['effluent_system_design.pdf', 'water_quality_test.pdf'],
+    comments: ['System design approved but implementation issues found', 'Effluent leakage detected during inspection', 'Requires system redesign and reinstallation'],
+    validationStatus: 'rejected',
+    column: 'rejected'
+  }
 ];
 
-export const complianceData = {
-    "Northern Fields Lease": {
-        areas: {
-            "150.5": {
-                documents: {
-                    "Environmental Assessment Report": {
-                        conditionTypes: {
-                            "Environmental": {
-                                shortenedConditions: {
-                                    "Water quality monitoring required": "Conduct monthly water quality tests at designated sampling points to ensure compliance with environmental standards",
-                                    "Air quality assessment needed": "Perform quarterly air quality measurements and submit reports to regulatory authority"
-                                }
-                            },
-                            "Regulatory": {
-                                shortenedConditions: {
-                                    "Permit renewal required": "Submit permit renewal application with supporting documentation 60 days before expiration",
-                                    "Compliance report submission": "Submit quarterly compliance reports detailing all environmental monitoring activities"
-                                }
-                            }
-                        }
-                    },
-                    "Safety Management Plan": {
-                        conditionTypes: {
-                            "Safety": {
-                                shortenedConditions: {
-                                    "Safety training mandatory": "All personnel must complete safety training program before site access",
-                                    "Equipment inspection required": "Monthly inspection of all safety equipment and emergency response systems"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "200.0": {
-                documents: {
-                    "Impact Assessment Study": {
-                        conditionTypes: {
-                            "Environmental": {
-                                shortenedConditions: {
-                                    "Soil contamination check": "Conduct soil contamination assessment at specified locations using approved methodology",
-                                    "Groundwater monitoring": "Install groundwater monitoring wells and conduct monthly sampling"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "Eastern Block Lease": {
-        areas: {
-            "200.0": {
-                documents: {
-                    "Regulatory Compliance Manual": {
-                        conditionTypes: {
-                            "Regulatory": {
-                                shortenedConditions: {
-                                    "License verification needed": "Verify all operational licenses are current and compliant with regulations",
-                                    "Documentation review required": "Review and update all regulatory documentation annually"
-                                }
-                            },
-                            "Operational": {
-                                shortenedConditions: {
-                                    "Operational audit required": "Conduct comprehensive operational audit to ensure compliance with lease terms",
-                                    "Performance metrics review": "Review operational performance metrics against agreed benchmarks"
-                                }
-                            }
-                        }
-                    }
-                },
-                "175.8": {
-                    documents: {
-                        "Environmental Impact Report": {
-                            conditionTypes: {
-                                "Environmental": {
-                                    shortenedConditions: {
-                                        "Biodiversity assessment": "Conduct biodiversity impact assessment in sensitive ecological areas",
-                                        "Waste management review": "Review and optimize waste management procedures for environmental compliance"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "Western Ridge Lease": {
-        areas: {
-            "85.2": {
-                documents: {
-                    "Air Quality Management Plan": {
-                        conditionTypes: {
-                            "Environmental": {
-                                shortenedConditions: {
-                                    "Air quality compliance check": "Conduct air quality measurements to ensure compliance with emission standards",
-                                    "Dust control measures": "Implement and monitor dust control measures during operational activities"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}; 
+ 
