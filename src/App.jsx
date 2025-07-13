@@ -22,7 +22,14 @@ import {
   Settings,
   Home,
   FileText,
-  Map
+  Map,
+  MapPin,
+  UserCheck,
+  Tag,
+  Clock,
+  Paperclip,
+  MessageSquare,
+  Calendar
 } from 'lucide-react'
 import DashboardPage from './components/dashboard';
 import EcoComplianceInspector from './components/EcoComplianceInspector';
@@ -35,13 +42,12 @@ import SettingsModal from './components/SettingsModal';
 import HelpModal from './components/HelpModal';
 import Toast from './components/Toast';
 import { sailMines } from './mock-data';
-import kanbanTasks from './components/kanban/kanban-data.json';
+import kanbanTasks from './components/kanban/ticket-data.json';
 
 // Main App Component
 function App() {
   const [filteredMines, setFilteredMines] = useState(sailMines);
   const [leftPanelExpanded, setLeftPanelExpanded] = useState(false);
-  const [isRightPanelOpen, setRightPanelOpen] = useState(false);
   const [activeView, setActiveView] = useState('kanban');
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -57,33 +63,6 @@ function App() {
   const [theme, setTheme] = useState('light');
   const [userNotifications, setUserNotifications] = useState(true);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [kanbanFilters, setKanbanFilters] = useState({});
-
-  const kanbanFilterConfig = [
-    { title: 'Status', key: 'column', icon: 'List' },
-    { title: 'Assignee', key: 'assignedTo', icon: 'User' },
-    { title: 'Priority', key: 'priority', icon: 'CheckCircle' },
-  ];
-
-  const filteredTasks = React.useMemo(() => {
-    return kanbanTasks.filter(task => {
-      const { searchTerm, column, assignedTo, priority } = kanbanFilters;
-      if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false;
-      }
-      if (column && task.column !== column) {
-        return false;
-      }
-      if (assignedTo && task.assignedTo !== assignedTo) {
-        return false;
-      }
-      if (priority && task.priority !== priority) {
-        return false;
-      }
-      return true;
-    });
-  }, [kanbanFilters]);
-
 
   // Kanban board notifications
   const notifications = [
@@ -96,12 +75,14 @@ function App() {
     { id: 7, text: 'Deadline approaching: "Maintain the wholesomeness of water" due in 2 days', time: '1d ago' },
     { id: 8, text: 'Task reopened: "Keep process effluent in close-circuit" requires additional documentation', time: '1d ago' },
   ];
+  
   // Dummy profile actions
   const profileActions = [
     { id: 1, label: 'View Profile' },
     { id: 2, label: 'Settings' },
     { id: 3, label: 'Logout' },
   ];
+  
   // Dummy search results for compliance issues
   const searchResults = [
     { key: 'COMP-101', summary: 'Environmental Clearance (EC) renewal for Gua Main Mine', mine: 'Gua Main Mine' },
@@ -125,13 +106,13 @@ function App() {
   const renderActiveView = () => {
     switch (activeView) {
       case 'kanban':
-        return <ComplianceKanban tasks={filteredTasks} allTasks={kanbanTasks} />;
+        return <ComplianceKanban tasks={kanbanTasks} />;
       case 'imageviewer':
         return <EcoComplianceInspector />;
       case 'dashboard':
         return <DashboardPage />;
       default:
-        return <ComplianceKanban tasks={filteredTasks} allTasks={kanbanTasks} />;
+        return <ComplianceKanban tasks={kanbanTasks} />;
     }
   };
 
@@ -190,7 +171,7 @@ function App() {
               onClick={() => {
                 setActiveView(item.id);
                 if (item.id !== 'kanban') {
-                  setRightPanelOpen(false);
+                  // setRightPanelOpen(false); // Removed as per edit hint
                 }
               }}
               className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${activeView === item.id
@@ -211,7 +192,7 @@ function App() {
 
       {/* Main Content */}
       <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${leftPanelExpanded ? 'ml-64' : 'ml-16'} ${isRightPanelOpen ? 'mr-80' : ''}`}
+        className={`flex-1 flex flex-col transition-all duration-300 ${leftPanelExpanded ? 'ml-64' : 'ml-16'}`}
       >
         {/* Top Header */}
         <header className={`bg-white border-b border-gray-200 px-6 py-4 w-full relative`}>
@@ -237,15 +218,7 @@ function App() {
               >
                 Help
               </button>
-              {activeView === 'kanban' && (
-                  <button
-                    onClick={() => setRightPanelOpen(!isRightPanelOpen)}
-                    className="ml-4 p-2 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg"
-                    title="Toggle Filters"
-                  >
-                    <Filter size={20} />
-                  </button>
-              )}
+              {/* Removed kanban filter button since it will be a hover-based right panel */}
             </div>
             <div className="flex items-center gap-4">
               {/* Search Icon */}
@@ -336,8 +309,8 @@ function App() {
                 onClick={() => activeView === 'kanban' && setGraffiti(true)}
                 title="Celebrate!"
               >
-                <div className="text-2xl font-bold text-green-600">{overallCompliance}%</div>
-                <div className="text-xs text-green-700">Overall Completion</div>
+                {/* <div className="text-2xl font-bold text-green-600">{overallCompliance}%</div> */}
+                {/* <div className="text-xs text-green-700">Overall Completion</div> */}
                 {/* Graffiti/Confetti burst */}
                 {graffiti && (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-50">
@@ -362,14 +335,7 @@ function App() {
       </div>
 
       {/* Right Filter Panel */}
-      <FilterPanel
-        isOpen={isRightPanelOpen && activeView === 'kanban'}
-        onClose={() => setRightPanelOpen(false)}
-        onFilterChange={setKanbanFilters}
-        items={kanbanTasks}
-        filterConfig={kanbanFilterConfig}
-        searchPlaceholder="Search tasks..."
-      />
+      {/* Removed FilterPanel component call */}
       <Toast message={toast} onClose={() => setToast('')} />
       <SettingsModal
         open={settingsOpen}

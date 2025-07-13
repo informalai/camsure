@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, User, Calendar, AlertCircle, CheckCircle, FileText, MessageSquare, Eye, Clock, MapPin } from 'lucide-react';
-import kanbanData from './components/kanban/kanbandata.json';
+import { Plus, User, Calendar, AlertCircle, CheckCircle, FileText, MessageSquare, Eye, Clock, MapPin, Filter, List, UserCheck, Tag, Shield, Paperclip } from 'lucide-react';
+import guaComplianceData from './components/kanban/gua-data.json';
+import FilterPanel from './components/FilterPanel';
 
-const ComplianceKanban = ({ tasks, allTasks }) => {
+const ComplianceKanban = ({ tasks }) => {
   const [localTasks, setLocalTasks] = useState(tasks);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [rightPanelExpanded, setRightPanelExpanded] = useState(false);
+  const [kanbanFilters, setKanbanFilters] = useState({});
   const [newTask, setNewTask] = useState({
     title: '',
     leaseName: '',
@@ -19,13 +22,104 @@ const ComplianceKanban = ({ tasks, allTasks }) => {
     deadline: ''
   });
 
-  useEffect(() => {
-    setLocalTasks(tasks);
-  }, [tasks]);
-
   // Use the actual kanban data from JSON file
-  const complianceData = kanbanData;
+  const complianceData = guaComplianceData;
 
+  const kanbanFilterConfig = [
+    { title: 'Status', key: 'column', icon: 'List' },
+    { title: 'Assignee', key: 'assignedTo', icon: 'User' },
+    { title: 'Assigned By', key: 'assignedBy', icon: 'UserCheck' },
+    { title: 'Priority', key: 'priority', icon: 'CheckCircle' },
+    { title: 'Lease Name', key: 'leaseName', icon: 'MapPin' },
+    { title: 'Document Type', key: 'documentName', icon: 'FileText' },
+    { title: 'Condition Type', key: 'conditionType', icon: 'Tag' },
+    { title: 'Validation Status', key: 'validationStatus', icon: 'Shield' },
+    { title: 'Task Status', key: 'taskStatus', icon: 'Clock' }, // Computed: overdue/upcoming/ontime
+    { title: 'Evidence Status', key: 'evidenceStatus', icon: 'Paperclip' }, // Computed: has/none
+    { title: 'Comments Status', key: 'commentsStatus', icon: 'MessageSquare' }, // Computed: has/none
+    { title: 'Date Range', key: 'dateRange', icon: 'Calendar' }, // Computed: this week/month/overdue
+  ];
+
+  const filteredTasks = React.useMemo(() => {
+    return tasks.filter(task => {
+      const { 
+        searchTerm, 
+        column, 
+        assignedTo, 
+        assignedBy,
+        priority, 
+        leaseName, 
+        documentName, 
+        conditionType, 
+        validationStatus,
+        taskStatus,
+        evidenceStatus,
+        commentsStatus,
+        dateRange
+      } = kanbanFilters;
+      
+      // Search term filter
+      if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+      
+      // Basic property filters
+      if (column && task.column !== column) return false;
+      if (assignedTo && task.assignedTo !== assignedTo) return false;
+      if (assignedBy && task.assignedBy !== assignedBy) return false;
+      if (priority && task.priority !== priority) return false;
+      if (leaseName && task.leaseName !== leaseName) return false;
+      if (documentName && task.documentName !== documentName) return false;
+      if (conditionType && task.conditionType !== conditionType) return false;
+      if (validationStatus && task.validationStatus !== validationStatus) return false;
+      
+      // Computed filters
+      
+      // Task Status (overdue/upcoming/ontime)
+      if (taskStatus) {
+        const today = new Date();
+        const deadline = new Date(task.deadline);
+        const isOverdue = deadline < today && task.column !== 'completed';
+        const isUpcoming = deadline > today && (deadline - today) <= 7 * 24 * 60 * 60 * 1000; // Next 7 days
+        
+        if (taskStatus === 'overdue' && !isOverdue) return false;
+        if (taskStatus === 'upcoming' && !isUpcoming) return false;
+        if (taskStatus === 'ontime' && (isOverdue || isUpcoming)) return false;
+      }
+      
+      // Evidence Status
+      if (evidenceStatus) {
+        const hasEvidence = task.evidence && task.evidence.length > 0;
+        if (evidenceStatus === 'has' && !hasEvidence) return false;
+        if (evidenceStatus === 'none' && hasEvidence) return false;
+      }
+      
+      // Comments Status
+      if (commentsStatus) {
+        const hasComments = task.comments && task.comments.length > 0;
+        if (commentsStatus === 'has' && !hasComments) return false;
+        if (commentsStatus === 'none' && hasComments) return false;
+      }
+      
+      // Date Range
+      if (dateRange) {
+        const today = new Date();
+        const taskDate = new Date(task.deadline);
+        const daysDiff = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+        
+        if (dateRange === 'overdue' && daysDiff >= 0) return false;
+        if (dateRange === 'thisWeek' && (daysDiff < 0 || daysDiff > 7)) return false;
+        if (dateRange === 'thisMonth' && (daysDiff < 0 || daysDiff > 30)) return false;
+        if (dateRange === 'future' && daysDiff < 30) return false;
+      }
+      
+      return true;
+    });
+  }, [tasks, kanbanFilters]);
+
+  useEffect(() => {
+    setLocalTasks(filteredTasks);
+  }, [filteredTasks]);
 
   // Helper functions for cascading dropdowns
   const getAvailableAreas = () => {
@@ -49,11 +143,7 @@ const ComplianceKanban = ({ tasks, allTasks }) => {
     return Array.isArray(conditions) ? conditions : [];
   };
 
-  const getConditionText = () => {
-    // Since conditions are stored as arrays, we return the selected condition text itself
-    if (!newTask.shortenedConditionText) return '';
-    return newTask.shortenedConditionText;
-  };
+
 
   // Reset dependent fields when parent changes
   const handleLeaseNameChange = (leaseName) => {
@@ -206,7 +296,7 @@ const ComplianceKanban = ({ tasks, allTasks }) => {
           
           {/* Milestone markers */}
           <div className="flex justify-between text-xs">
-            {milestones.map((milestone, index) => {
+            {milestones.map((milestone) => {
               // Determine if this milestone should be highlighted based on workflow progress
               const shouldHighlight = milestone.date || 
                 (task.column === 'in-progress' && ['createDate', 'deadline'].includes(milestone.key)) ||
@@ -792,45 +882,127 @@ const ComplianceKanban = ({ tasks, allTasks }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">SAIL Kanban Board</h1>
-        <div className="flex justify-between items-center">
-          <p className="text-gray-600">Manage compliance tasks across all the lease</p>
-          <button
-            onClick={() => setShowTaskForm(true)}
-            className="flex items-center gap-2 px-4 py-2 border-2 border-black text-black rounded-md hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            New Task
-          </button>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Main Content */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${rightPanelExpanded ? 'mr-80' : 'mr-16'}`}
+      >
+        <div className="p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">SAIL Kanban Board</h1>
+            <div className="flex justify-between items-center">
+              <p className="text-gray-600">Manage compliance tasks across all the lease</p>
+              
+              {/* Metrics Box */}
+              <div className="flex gap-4 mr-4">
+                <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-4 text-center min-w-[120px]">
+                  <div className="text-2xl font-bold text-red-600">
+                    {localTasks.filter(task => {
+                      const deadline = new Date(task.deadline);
+                      const today = new Date();
+                      return deadline < today && task.column !== 'completed';
+                    }).length}
+                  </div>
+                  <div className="text-xs text-red-700 font-medium">Overdue Tasks</div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-4 text-center min-w-[120px]">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {localTasks.filter(task => {
+                      const deadline = new Date(task.deadline);
+                      const today = new Date();
+                      const daysUntilDeadline = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                      return daysUntilDeadline >= 0 && daysUntilDeadline <= 7;
+                    }).length}
+                  </div>
+                  <div className="text-xs text-yellow-700 font-medium">Due This Week</div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 text-center min-w-[120px]">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {localTasks.filter(task => !task.evidence || task.evidence.length === 0).length}
+                  </div>
+                  <div className="text-xs text-purple-700 font-medium">Evidence Pending</div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-4 text-center min-w-[120px]">
+                  <div className="text-2xl font-bold text-green-600">
+                    {Math.round((localTasks.filter(task => task.column === 'completed').length / localTasks.length) * 100)}%
+                  </div>
+                  <div className="text-xs text-green-700 font-medium">Completion Rate</div>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setShowTaskForm(true)}
+                className="flex items-center gap-2 px-4 py-2 border-2 border-black text-black rounded-md hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                New Task
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-4 overflow-x-auto pb-4">
+            {columns.map((column) => (
+              <div key={column.id} className="min-w-full flex-shrink-0">
+                <div className={`${column.color} p-4 rounded-t-lg border-b-2 border-gray-300`}>
+                  <h2 className={`font-semibold ${column.textColor} text-lg`}>{column.title}</h2>
+                  <span className="text-sm text-gray-600">
+                    {getTasksByColumn(column.id).length} tasks
+                  </span>
+                </div>
+                <div className="bg-white p-4 rounded-b-lg border-2 border-gray-200 min-h-[600px]">
+                  <div className="space-y-3">
+                    {getTasksByColumn(column.id).map((task) => (
+                      <TaskCard key={task.id} task={task} />
+                    ))}
+                    {getTasksByColumn(column.id).length === 0 && (
+                      <div className="text-center text-gray-500 py-8">
+                        <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>No tasks in this column</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-4 overflow-x-auto pb-4">
-        {columns.map((column) => (
-          <div key={column.id} className="min-w-full flex-shrink-0">
-            <div className={`${column.color} p-4 rounded-t-lg border-b-2 border-gray-300`}>
-              <h2 className={`font-semibold ${column.textColor} text-lg`}>{column.title}</h2>
-              <span className="text-sm text-gray-600">
-                {getTasksByColumn(column.id).length} tasks
-              </span>
+      {/* Right Filter Panel (hoverable) */}
+      <div
+        className={`fixed right-0 top-0 h-full bg-white border-l border-gray-200 z-50 shadow-2xl transition-all duration-300 ${rightPanelExpanded ? 'w-80' : 'w-16'}`}
+        onMouseEnter={() => setRightPanelExpanded(true)}
+        onMouseLeave={() => setRightPanelExpanded(false)}
+      >
+        <div className="h-full flex flex-col">
+          {/* Header (always show icon, expand details on hover) */}
+          <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <Filter size={20} className="text-white" />
             </div>
-            <div className="bg-white p-4 rounded-b-lg border-2 border-gray-200 min-h-[600px]">
-              <div className="space-y-3">
-                {getTasksByColumn(column.id).map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-                {getTasksByColumn(column.id).length === 0 && (
-                  <div className="text-center text-gray-500 py-8">
-                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>No tasks in this column</p>
-                  </div>
-                )}
+            {rightPanelExpanded && (
+              <div>
+                <h3 className="font-bold text-gray-900">Smart Filters</h3>
+                <p className="text-sm text-gray-600">Refine your analysis</p>
               </div>
-            </div>
+            )}
           </div>
-        ))}
+          {/* Only show filter content if expanded */}
+          {rightPanelExpanded && (
+            <FilterPanel
+              isOpen={true}
+              onClose={() => {}} // No close function since it's hover-based
+              onFilterChange={setKanbanFilters}
+              items={tasks}
+              filterConfig={kanbanFilterConfig}
+              searchPlaceholder="Search tasks..."
+              embedded={true}
+            />
+          )}
+        </div>
       </div>
 
       {selectedTask && (
